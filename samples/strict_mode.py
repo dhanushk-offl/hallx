@@ -19,3 +19,4 @@ try:
     )
 except hallx.HallxHighRiskError as exc:
     print(f"blocked: {exc}")
+    print("tip: retry with lower temperature, more context, and JSON mode")

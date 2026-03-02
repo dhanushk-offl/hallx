@@ -5,6 +5,7 @@ from typing import Any, Callable, Iterable, Mapping, Optional
 
 from hallx.consistency import check_consistency, check_consistency_async
 from hallx.grounding import check_grounding
+from hallx.retry import build_recommendation
 from hallx.schema import validate_schema, validate_schema_detailed
 from hallx.scoring import combine_scores, resolve_weights, risk_level_from_confidence
 from hallx.types import HallxHighRiskError, HallxResult, LLMAdapter, SchemaValidationResult
@@ -69,11 +70,18 @@ class Hallx:
         risk_level = risk_level_from_confidence(confidence)
 
         issues = schema_issues + consistency_issues + grounding_issues
+        recommendation = build_recommendation(
+            confidence=confidence,
+            risk_level=risk_level,
+            scores=scores,
+            issues=issues,
+        )
         result = HallxResult(
             confidence=confidence,
             risk_level=risk_level,
             scores=scores,
             issues=issues,
+            recommendation=recommendation,
         )
 
         if self._strict and risk_level == "high":
@@ -131,11 +139,18 @@ class Hallx:
         risk_level = risk_level_from_confidence(confidence)
 
         issues = schema_issues + consistency_issues + grounding_issues
+        recommendation = build_recommendation(
+            confidence=confidence,
+            risk_level=risk_level,
+            scores=scores,
+            issues=issues,
+        )
         result = HallxResult(
             confidence=confidence,
             risk_level=risk_level,
             scores=scores,
             issues=issues,
+            recommendation=recommendation,
         )
 
         if self._strict and risk_level == "high":

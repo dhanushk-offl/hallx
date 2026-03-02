@@ -58,6 +58,9 @@ def test_hallx_assert_safe() -> None:
         consistency_runs=3,
     )
 
+    assert result.recommendation["action"] in {"proceed", "retry"}
+    assert "suggested_temperature" in result.recommendation
+
     checker.assert_safe(result, threshold=0.2)
 
     with pytest.raises(HallxHighRiskError):
@@ -82,3 +85,4 @@ async def test_hallx_async_flow() -> None:
     assert 0.0 <= result.confidence <= 1.0
     assert result.risk_level in {"high", "medium", "low"}
     assert isinstance(result.breakdown, dict)
+    assert isinstance(result.recommendation, dict)

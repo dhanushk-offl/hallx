@@ -4,7 +4,7 @@
 
 ## What is Hallx?
 
-Hallx runs deterministic checks over model output quality and returns a normalized confidence score (`0..1`), a risk level (`high|medium|low`), and actionable issues. It is designed for backend services, RAG pipelines, and agent orchestration layers.
+Hallx runs deterministic checks over model output quality and returns a normalized confidence score (`0..1`), a risk level (`high|medium|low`), actionable issues, and an automatic retry recommendation payload for middleware orchestration.
 
 ## Why hallucination detection matters
 
@@ -24,6 +24,7 @@ Hallx makes these failure modes explicit so you can gate, retry, or escalate.
 - JSON Schema validation (`missing`, `type`, `enum`, `extra keys`, `null injection`)
 - Forbidden source detection (fabricated citation / suspicious URL heuristics)
 - Weighted confidence scoring engine
+- Retry Strategy Engine (`result.recommendation`)
 - Strict guard mode (`HallxHighRiskError`)
 - Sync + async APIs
 - Provider adapters (OpenAI, OpenRouter, Anthropic, Perplexity, HuggingFace, Gemini, Grok)
@@ -64,7 +65,27 @@ print(result.confidence)
 print(result.risk_level)
 print(result.scores)
 print(result.issues)
+print(result.recommendation)
 ```
+
+## Retry Strategy Engine
+
+Hallx auto-generates middleware hints:
+
+```python
+{
+    "action": "retry",
+    "suggested_temperature": 0.2,
+    "suggestions": [
+        "Lower temperature",
+        "Increase context",
+        "Force JSON mode",
+        "Switch model"
+    ]
+}
+```
+
+Suggested actions are derived from score breakdown and detected issues.
 
 ## Advanced Usage
 
@@ -131,6 +152,7 @@ async def main() -> None:
         context=["Reference context text."],
     )
     print(result.confidence, result.risk_level)
+    print(result.recommendation)
 
 asyncio.run(main())
 ```
@@ -163,19 +185,20 @@ Minimal modular structure:
 hallx/
 +-- core.py          # main Hallx class + orchestration
 +-- scoring.py       # confidence aggregation + risk mapping
++-- retry.py         # retry strategy recommendation engine
 +-- consistency.py   # multi-run variance checks
 +-- grounding.py     # context grounding + source heuristics
 +-- schema.py        # JSON/schema integrity checks
 +-- types.py         # result models + adapter protocol
 +-- adapters/
-�   +-- base.py
-�   +-- openai.py
-�   +-- openrouter.py
-�   +-- anthropic.py
-�   +-- perplexity.py
-�   +-- huggingface.py
-�   +-- gemini.py
-�   +-- grok.py
+|   +-- base.py
+|   +-- openai.py
+|   +-- openrouter.py
+|   +-- anthropic.py
+|   +-- perplexity.py
+|   +-- huggingface.py
+|   +-- gemini.py
+|   +-- grok.py
 +-- __init__.py
 ```
 
@@ -187,12 +210,14 @@ Scoring pipeline:
 4. Check grounding against context.
 5. Detect suspicious source references.
 6. Combine weighted scores to one confidence value.
+7. Produce retry recommendation for middleware action.
 
 ## Samples
 
 See [`samples/`](samples):
 
 - `basic_sync.py`
+- `retry_strategy.py`
 - `strict_mode.py`
 - `check_json_only.py`
 - `custom_embeddings.py`

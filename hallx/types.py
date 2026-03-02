@@ -1,7 +1,7 @@
 """Typed models and protocols for hallx."""
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Protocol, Sequence, runtime_checkable
+from typing import Any, Dict, List, Optional, Protocol, Sequence, runtime_checkable
 
 
 @runtime_checkable
@@ -23,6 +23,7 @@ class HallxResult:
     risk_level: str
     scores: Dict[str, float] = field(default_factory=dict)
     issues: List[str] = field(default_factory=list)
+    recommendation: Dict[str, Any] = field(default_factory=dict)
 
     @property
     def breakdown(self) -> Dict[str, float]:
