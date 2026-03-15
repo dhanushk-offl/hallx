@@ -13,6 +13,9 @@ license-files = ["LICENSE"]
 authors = [
   { name = "Dhanush Kandhan" }
 ]
+maintainers = [
+  { name = "Dhanush Kandhan" }
+]
 keywords = ["llm", "hallucination", "validation", "scoring", "ai"]
 classifiers = [
   "Development Status :: 4 - Beta",

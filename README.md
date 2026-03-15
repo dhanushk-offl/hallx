@@ -1,35 +1,30 @@
 # hallx
 
-`hallx` is a lightweight, model-agnostic hallucination risk engine for LLM outputs.
-It also supports UQLM-style naming via `UQLM` and a compatibility package namespace `uqlm`.
+[![Python Tests](https://github.com/dhanushkandhan/hallx/actions/workflows/test.yml/badge.svg)](https://github.com/dhanushkandhan/hallx/actions/workflows/test.yml)
+[![Release](https://github.com/dhanushkandhan/hallx/actions/workflows/release.yml/badge.svg)](https://github.com/dhanushkandhan/hallx/actions/workflows/release.yml)
+[![PyPI version](https://img.shields.io/pypi/v/hallx.svg)](https://pypi.org/project/hallx/)
+[![Python versions](https://img.shields.io/pypi/pyversions/hallx.svg)](https://pypi.org/project/hallx/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## What is Hallx?
+Lightweight, production-focused hallucination risk detection for LLM outputs.
 
-Hallx runs deterministic checks over model output quality and returns a normalized confidence score (`0..1`), a risk level (`high|medium|low`), actionable issues, and an automatic retry recommendation payload for middleware orchestration.
+`hallx` gives you:
+- confidence score (`0.0` to `1.0`)
+- risk level (`high`, `medium`, `low`)
+- issue list you can inspect/log
+- retry recommendation payload for middleware automation
 
-## Why hallucination detection matters
+It also supports UQLM-style naming via `UQLM` and `uqlm`.
 
-Production LLM systems can fail in ways that look fluent but are unsafe:
+## Why Hallx
 
-- inconsistent answers across retries,
-- claims unsupported by retrieved context,
-- malformed structured outputs,
-- fabricated citations and fake links.
+LLM failures in production are often fluent but unsafe:
+- unsupported claims against RAG context
+- unstable outputs across retries
+- broken structured JSON
+- fabricated source/citation patterns
 
 Hallx makes these failure modes explicit so you can gate, retry, or escalate.
-
-## Features
-
-- Deterministic multi-run consistency scoring
-- Context grounding checks for RAG responses
-- JSON Schema validation (`missing`, `type`, `enum`, `extra keys`, `null injection`)
-- Forbidden source detection (fabricated citation / suspicious URL heuristics)
-- Weighted confidence scoring engine
-- Retry Strategy Engine (`result.recommendation`)
-- Strict guard mode (`HallxHighRiskError`)
-- Sync + async APIs
-- Provider adapters (OpenAI, OpenRouter, Anthropic, Perplexity, HuggingFace, Gemini, Grok)
-- Fully typed, pytest-tested, lightweight dependencies
 
 ## Installation
 
@@ -37,30 +32,18 @@ Hallx makes these failure modes explicit so you can gate, retry, or escalate.
 pip install hallx
 ```
 
-Development install:
+Dev install:
 
 ```bash
 pip install -e .[dev]
 ```
 
-Build package artifacts:
-
-```bash
-python -m build
-```
-
-Install from local wheel:
-
-```bash
-pip install dist/hallx-0.1.0-py3-none-any.whl
-```
-
-## Quickstart
+## Quick Start
 
 ```python
-import hallx
+from hallx import Hallx
 
-checker = hallx.Hallx()
+checker = Hallx(strict=False)
 
 result = checker.check(
     prompt="Summarize refund policy",
@@ -74,216 +57,60 @@ result = checker.check(
     },
 )
 
-print(result.confidence)
-print(result.risk_level)
-print(result.scores)
+print(result.confidence, result.risk_level)
 print(result.issues)
 print(result.recommendation)
 ```
 
-UQLM-style usage:
+UQLM-style import:
 
 ```python
 from hallx import UQLM
 # or: from uqlm import UQLM
-
-checker = UQLM()
-result = checker.check(prompt="p", response="r")
-print(result.confidence, result.risk_level)
 ```
 
-## Retry Strategy Engine
+## Key Features
 
-Hallx auto-generates middleware hints:
+- Deterministic consistency scoring across repeated generations
+- Grounding checks against provided context
+- JSON Schema validation with actionable issue messages
+- Weighted confidence aggregation
+- Strict mode (`HallxHighRiskError`) for hard safety gates
+- Sync and async APIs
+- Multi-provider adapters (OpenAI, Anthropic, Gemini, OpenRouter, Perplexity, Grok, HuggingFace)
 
-```python
-{
-    "action": "retry",
-    "suggested_temperature": 0.2,
-    "suggestions": [
-        "Lower temperature",
-        "Increase context",
-        "Force JSON mode",
-        "Switch model"
-    ]
-}
-```
+## Production Usage
 
-Suggested actions are derived from score breakdown and detected issues.
+- Enable strict mode for high-risk blocking paths.
+- Use `result.recommendation` to drive retry policy.
+- Log `confidence`, `risk_level`, and `issues` for observability.
 
-## Advanced Usage
+More:
+- [Usage Guide](docs/USAGE.md)
+- [Production Notes](docs/PRODUCTION.md)
 
-### Custom weights
+## Development
 
-```python
-from hallx import Hallx
-
-checker = Hallx(weights={
-    "schema": 0.3,
-    "consistency": 0.4,
-    "grounding": 0.3,
-})
-```
-
-### OpenAI-style callable
-
-```python
-def llm_callable(prompt: str) -> str:
-    return "Answer text"
-
-result = checker.check(
-    prompt="question",
-    response="Answer text",
-    llm_callable=llm_callable,
-    consistency_runs=3,
-)
-```
-
-### Adapter usage (OpenAI)
-
-```python
-import os
-from hallx import Hallx, OpenAIAdapter
-
-adapter = OpenAIAdapter(model="gpt-4.1-mini", api_key=os.environ["OPENAI_API_KEY"])
-checker = Hallx()
-
-response = adapter.generate("What is the capital of France?")
-result = checker.check(
-    prompt="What is the capital of France?",
-    response=response,
-    context=["The capital of France is Paris."],
-    llm_adapter=adapter,
-)
-```
-
-### Async example
-
-```python
-import asyncio
-from hallx import Hallx
-
-checker = Hallx()
-
-async def llm_callable(prompt: str) -> str:
-    return "Answer text"
-
-async def main() -> None:
-    result = await checker.check_async(
-        prompt="question",
-        response="Answer text",
-        llm_callable=llm_callable,
-        context=["Reference context text."],
-    )
-    print(result.confidence, result.risk_level)
-    print(result.recommendation)
-
-asyncio.run(main())
-```
-
-### Strict mode
-
-```python
-from hallx import Hallx, HallxHighRiskError
-
-checker = Hallx(strict=True)
-
-try:
-    checker.check(prompt="p", response="r")
-except HallxHighRiskError as exc:
-    print(f"blocked: {exc}")
-```
-
-### Schema-only validation
-
-```python
-report = checker.check_json(response={"answer": None}, schema=my_schema)
-print(report.score, report.is_valid, report.issues)
-```
-
-## Architecture Overview
-
-Minimal modular structure:
-
-```text
-hallx/
-+-- core.py          # main Hallx class + orchestration
-+-- scoring.py       # confidence aggregation + risk mapping
-+-- retry.py         # retry strategy recommendation engine
-+-- consistency.py   # multi-run variance checks
-+-- grounding.py     # context grounding + source heuristics
-+-- schema.py        # JSON/schema integrity checks
-+-- types.py         # result models + adapter protocol
-+-- adapters/
-|   +-- base.py
-|   +-- openai.py
-|   +-- openrouter.py
-|   +-- anthropic.py
-|   +-- perplexity.py
-|   +-- huggingface.py
-|   +-- gemini.py
-|   +-- grok.py
-+-- __init__.py
-```
-
-Scoring pipeline:
-
-1. Parse response safely.
-2. Validate schema.
-3. Measure consistency over N generations.
-4. Check grounding against context.
-5. Detect suspicious source references.
-6. Combine weighted scores to one confidence value.
-7. Produce retry recommendation for middleware action.
-
-## Samples
-
-See [`samples/`](samples):
-
-- `basic_sync.py`
-- `retry_strategy.py`
-- `strict_mode.py`
-- `check_json_only.py`
-- `custom_embeddings.py`
-- `async_openai_adapter.py`
-- `providers_matrix.py`
-
-## Running Tests
+Run tests:
 
 ```bash
 python -m pytest
 ```
 
-Run targeted production checks:
+Run packaging checks:
 
 ```bash
-python -m pytest tests/test_production.py -q
+python -m build
+python -m twine check dist/*
 ```
 
-## Production Checklist
+## CI and Release
 
-1. Pin and review dependencies in `pyproject.toml`.
-2. Validate behavior with `python -m pytest`.
-3. Build and verify artifacts with `python -m build` and `python -m twine check dist/*`.
-4. Use strict mode (`Hallx(strict=True)`) for blocking risky outputs.
-5. Gate low-confidence outputs with `assert_safe(...)` or your middleware policy.
+- Push to `main`/`master`: runs test workflow.
+- Push tag `v*` (example: `v0.1.1`): runs release workflow and creates GitHub Release with package artifacts.
 
-## OpenSSF-Oriented Security Notes
+## Community
 
-- No dynamic code execution (`eval/exec`) in runtime path.
-- Provider adapters enforce request timeout and bounded generation parameters.
-- API keys are passed via constructor or env vars, never hardcoded.
-- JSON-only transport with strict parsing and explicit error handling.
-- Full typing + unit tests for deterministic behavior.
-- Dependency surface intentionally small (`jsonschema`, `rapidfuzz`).
-
-## Install Size
-
-Hallx is pure-Python with lightweight dependencies and is designed to stay comfortably under ~1MB for package code itself (excluding optional environment wheels).
-
-## Roadmap
-
-- Logprob scoring
-- Multi-model consensus
-- Embedding provider plugin interface
-- Optional web verification flow
+- [Contributing Guide](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [License](LICENSE)
