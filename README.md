@@ -1,6 +1,7 @@
 # hallx
 
 `hallx` is a lightweight, model-agnostic hallucination risk engine for LLM outputs.
+It also supports UQLM-style naming via `UQLM` and a compatibility package namespace `uqlm`.
 
 ## What is Hallx?
 
@@ -42,6 +43,18 @@ Development install:
 pip install -e .[dev]
 ```
 
+Build package artifacts:
+
+```bash
+python -m build
+```
+
+Install from local wheel:
+
+```bash
+pip install dist/hallx-0.1.0-py3-none-any.whl
+```
+
 ## Quickstart
 
 ```python
@@ -66,6 +79,17 @@ print(result.risk_level)
 print(result.scores)
 print(result.issues)
 print(result.recommendation)
+```
+
+UQLM-style usage:
+
+```python
+from hallx import UQLM
+# or: from uqlm import UQLM
+
+checker = UQLM()
+result = checker.check(prompt="p", response="r")
+print(result.confidence, result.risk_level)
 ```
 
 ## Retry Strategy Engine
@@ -227,8 +251,22 @@ See [`samples/`](samples):
 ## Running Tests
 
 ```bash
-pytest
+python -m pytest
 ```
+
+Run targeted production checks:
+
+```bash
+python -m pytest tests/test_production.py -q
+```
+
+## Production Checklist
+
+1. Pin and review dependencies in `pyproject.toml`.
+2. Validate behavior with `python -m pytest`.
+3. Build and verify artifacts with `python -m build` and `python -m twine check dist/*`.
+4. Use strict mode (`Hallx(strict=True)`) for blocking risky outputs.
+5. Gate low-confidence outputs with `assert_safe(...)` or your middleware policy.
 
 ## OpenSSF-Oriented Security Notes
 

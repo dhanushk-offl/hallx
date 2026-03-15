@@ -1,5 +1,6 @@
 """Score aggregation and risk mapping."""
 
+import math
 from typing import Dict, Mapping, Optional
 
 
@@ -16,6 +17,16 @@ def _clamp_score(value: float) -> float:
     return max(0.0, min(1.0, value))
 
 
+def _to_finite_float(value: float, *, name: str) -> float:
+    try:
+        converted = float(value)
+    except (TypeError, ValueError) as exc:
+        raise TypeError(f"{name} must be numeric") from exc
+    if not math.isfinite(converted):
+        raise ValueError(f"{name} must be finite")
+    return converted
+
+
 def resolve_weights(weights: Optional[Mapping[str, float]]) -> Dict[str, float]:
     """Validate and normalize weight mapping."""
     if weights is None:
@@ -25,13 +36,15 @@ def resolve_weights(weights: Optional[Mapping[str, float]]) -> Dict[str, float]:
     if set(provided.keys()) != set(_REQUIRED_KEYS):
         raise ValueError(f"weights must contain exactly {_REQUIRED_KEYS}")
 
-    total = sum(provided.values())
+    normalized = {key: _to_finite_float(value, name=f"weight[{key}]") for key, value in provided.items()}
+
+    total = sum(normalized.values())
     if total <= 0.0:
         raise ValueError("weight sum must be > 0")
-    if any(value < 0.0 for value in provided.values()):
+    if any(value < 0.0 for value in normalized.values()):
         raise ValueError("weights must be non-negative")
 
-    return {key: value / total for key, value in provided.items()}
+    return {key: value / total for key, value in normalized.items()}
 
 
 def combine_scores(scores: Mapping[str, float], weights: Mapping[str, float]) -> float:
@@ -41,7 +54,10 @@ def combine_scores(scores: Mapping[str, float], weights: Mapping[str, float]) ->
         raise ValueError(f"missing score keys: {missing}")
 
     resolved = resolve_weights(weights)
-    combined = sum(_clamp_score(float(scores[key])) * resolved[key] for key in _REQUIRED_KEYS)
+    combined = sum(
+        _clamp_score(_to_finite_float(scores[key], name=f"score[{key}]")) * resolved[key]
+        for key in _REQUIRED_KEYS
+    )
     return _clamp_score(combined)
 
 

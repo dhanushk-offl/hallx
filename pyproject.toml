@@ -8,7 +8,8 @@ version = "0.1.0"
 description = "Lightweight hallucination risk scoring for LLM outputs"
 readme = "README.md"
 requires-python = ">=3.9"
-license = { file = "LICENSE" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
   { name = "Dhanush Kandhan" }
 ]
@@ -16,7 +17,6 @@ keywords = ["llm", "hallucination", "validation", "scoring", "ai"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -29,14 +29,25 @@ dependencies = [
   "rapidfuzz>=3.0.0,<4.0.0",
 ]
 
+[project.urls]
+Homepage = "https://github.com/dhanushkandhan/hallx"
+Repository = "https://github.com/dhanushkandhan/hallx"
+Issues = "https://github.com/dhanushkandhan/hallx/issues"
+Documentation = "https://github.com/dhanushkandhan/hallx#readme"
+
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0.0,<9.0.0",
   "pytest-asyncio>=0.23.0,<1.0.0",
+  "build>=1.2.0,<2.0.0",
+  "twine>=6.0.0,<7.0.0",
 ]
 
 [tool.setuptools]
-packages = ["hallx", "hallx.utils", "hallx.adapters"]
+packages = ["hallx", "hallx.utils", "hallx.adapters", "uqlm"]
+
+[tool.setuptools.package-data]
+hallx = ["py.typed"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
