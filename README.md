@@ -16,6 +16,21 @@ Lightweight, production-focused hallucination risk detection for LLM outputs.
 
 It also supports UQLM-style naming via `UQLM` and `uqlm`.
 
+## How Hallx Works
+
+Hallx combines three checks into a single confidence score:
+
+- `schema`: is the output structurally valid for your expected JSON schema?
+- `consistency`: does the model give stable answers across repeated runs?
+- `grounding`: do the response claims align with your provided context?
+
+Final confidence is mapped to risk:
+- `< 0.40` -> `high`
+- `< 0.75` -> `medium`
+- `>= 0.75` -> `low`
+
+![Hallx working flow](docs/images/hallx-working-flow.svg)
+
 ## Why Hallx
 
 LLM failures in production are often fluent but unsafe:
@@ -61,6 +76,37 @@ print(result.confidence, result.risk_level)
 print(result.issues)
 print(result.recommendation)
 ```
+
+## Async OpenAI Samples (With and Without Context)
+
+Set your key:
+
+```bash
+export OPENAI_API_KEY="your_key_here"
+```
+
+Run with grounding context:
+
+```bash
+python samples/async_openai_adapter.py
+```
+
+Run without context:
+
+```bash
+python samples/async_openai_adapter_no_context.py
+```
+
+What these samples demonstrate:
+- low-risk baseline question
+- hallucination-prone future claim (`Nobel Prize 2027`)
+- hallucination-prone medical/citation-style claim
+
+Notes:
+- without `context`, Hallx skips grounding and reports it in `issues`
+- high-risk outcomes are probabilistic and model-dependent; if needed, increase `temperature` and `consistency_runs` to expose instability
+- in the no-context sample, weights are tuned to focus on schema + consistency:
+  `{"schema": 0.5, "consistency": 0.5, "grounding": 0.0}`
 
 UQLM-style import:
 

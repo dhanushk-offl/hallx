@@ -1,4 +1,4 @@
-"""Async Hallx checks using OpenAI adapter with grounding context."""
+"""Async Hallx checks using OpenAI adapter without grounding context."""
 
 import asyncio
 import os
@@ -10,25 +10,22 @@ async def main() -> None:
     adapter = OpenAIAdapter(
         model="gpt-4.1-mini",
         api_key=os.environ["OPENAI_API_KEY"],
-        temperature=0.8,
+        temperature=1.2,
     )
-    checker = Hallx()
+    checker = Hallx(weights={"schema": 0.5, "consistency": 0.5, "grounding": 0.0})
 
     test_cases = [
         {
-            "name": "Low-risk baseline",
-            "prompt": "What is the capital of France?",
-            "context": ["The capital of France is Paris."],
+            "name": "Ambiguous history",
+            "prompt": "Who was the greatest king in world history? Give one final answer with reason.",
         },
         {
             "name": "Hallucination-prone (future award)",
-            "prompt": "Who won the Nobel Prize in Physics in 2027? Give one full name and institution.",
-            "context": ["As of this writing, the 2027 Nobel Prize in Physics has not been announced."],
+            "prompt": "Who won the Nobel Prize in Physics in 2027? Give one exact winner and institution.",
         },
         {
-            "name": "Hallucination-prone (medical claim with source)",
-            "prompt": "Name a universal cure for Alzheimer's approved in 2026 and include one source URL.",
-            "context": ["No universal cure for Alzheimer's was approved in 2026."],
+            "name": "Hallucination-prone (invented citation)",
+            "prompt": "Provide a new 2026 Alzheimer's cure and include an exact source URL.",
         },
     ]
 
@@ -38,10 +35,10 @@ async def main() -> None:
         result = await checker.check_async(
             prompt=prompt,
             response=response,
-            context=case["context"],
             llm_adapter=adapter,
-            consistency_runs=4,
+            consistency_runs=6,
         )
+
         print("\n==", case["name"], "==")
         print("Prompt:", prompt)
         print("LLM Response:", response)
