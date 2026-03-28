@@ -1,0 +1,44 @@
+name: Feature request
+description: Propose an enhancement for hallx.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the problem first, then the proposed solution.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What limitation are you currently facing?
+      placeholder: I cannot configure per-route risk policy profiles.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the API or behavior you want.
+      placeholder: Add route-level policy profiles with named configs.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe workarounds or competing approaches.
+  - type: textarea
+    id: impact
+    attributes:
+      label: Expected impact
+      description: Explain how this improves reliability, safety, or DX.
+      placeholder: Reduces false positives in low-risk flows.
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I am willing to submit a PR for this feature.
+          required: false
