@@ -67,6 +67,50 @@ def test_hallx_assert_safe() -> None:
         checker.assert_safe(result, threshold=0.9)
 
 
+def test_skip_penalty_reduces_confidence_when_checks_are_skipped() -> None:
+    checker = Hallx(
+        profile="balanced",
+        weights={"schema": 0.0, "consistency": 0.5, "grounding": 0.5},
+    )
+    result = checker.check(prompt="p", response="r", context=None, llm_callable=None)
+
+    assert result.confidence == pytest.approx(0.75)
+    assert result.risk_level == "low"
+    assert any("penalized" in issue for issue in result.issues)
+
+
+def test_profile_changes_default_consistency_runs() -> None:
+    calls = {"count": 0}
+
+    def stable_llm(_: str) -> str:
+        calls["count"] += 1
+        return "ok"
+
+    Hallx(profile="fast").check(
+        prompt="p",
+        response="ok",
+        context=["ok"],
+        llm_callable=stable_llm,
+        consistency_runs=None,
+    )
+    assert calls["count"] == 2
+
+    calls["count"] = 0
+    Hallx(profile="strict").check(
+        prompt="p",
+        response="ok",
+        context=["ok"],
+        llm_callable=stable_llm,
+        consistency_runs=None,
+    )
+    assert calls["count"] == 4
+
+
+def test_invalid_profile_raises() -> None:
+    with pytest.raises(ValueError):
+        Hallx(profile="unknown")
+
+
 @pytest.mark.asyncio
 async def test_hallx_async_flow() -> None:
     checker = Hallx(weights={"schema": 0.3, "consistency": 0.4, "grounding": 0.3})

@@ -10,6 +10,7 @@ from hallx.adapters import (
     GeminiAdapter,
     GrokAdapter,
     HuggingFaceAdapter,
+    OllamaAdapter,
     OpenAIAdapter,
     OpenRouterAdapter,
     PerplexityAdapter,
@@ -41,6 +42,11 @@ def build_adapters() -> dict[str, object]:
         adapters["gemini"] = GeminiAdapter("gemini-1.5-flash", os.environ["GEMINI_API_KEY"])
     if os.getenv("XAI_API_KEY"):
         adapters["grok"] = GrokAdapter("grok-2", os.environ["XAI_API_KEY"])
+    if os.getenv("OLLAMA_BASE_URL"):
+        adapters["ollama"] = OllamaAdapter(
+            model="llama3.1",
+            base_url=os.environ["OLLAMA_BASE_URL"],
+        )
 
     return adapters
 

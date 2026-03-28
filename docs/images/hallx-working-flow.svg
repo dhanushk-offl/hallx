@@ -1,93 +1,160 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
-  <title id="title">Hallx Working Flow (Excalidraw Style)</title>
-  <desc id="desc">A hand-drawn style diagram showing prompt, LLM response, Hallx checks, confidence score, and risk output.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980" role="img" aria-labelledby="title desc">
+  <title id="title">Hallx Working Flow</title>
+  <desc id="desc">Pipeline diagram showing request, LLM generation, Hallx checks, scoring, policy action, human feedback storage, and calibration loop.</desc>
   <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffaf0"/>
+      <stop offset="100%" stop-color="#f2f7ff"/>
+    </linearGradient>
     <style>
-      .bg { fill: #fffdf8; }
-      .box {
-        fill: #fffefb;
+      .bg { fill: url(#bgGrad); }
+      .panel {
+        fill: #ffffff;
         stroke: #1f2937;
-        stroke-width: 3;
-        stroke-linecap: round;
+        stroke-width: 2.4;
         stroke-linejoin: round;
       }
-      .ink { fill: #111827; font-family: "Virgil", "Comic Sans MS", cursive; }
-      .title { font-size: 36px; font-weight: 700; }
-      .label { font-size: 24px; font-weight: 700; }
-      .small { font-size: 20px; }
-      .arrow { stroke: #111827; stroke-width: 3; fill: none; stroke-linecap: round; }
-      .accent1 { fill: #fef3c7; }
-      .accent2 { fill: #dbeafe; }
-      .accent3 { fill: #dcfce7; }
-      .accent4 { fill: #fee2e2; }
-      .accent5 { fill: #ede9fe; }
+      .panel-soft {
+        fill: #ffffff;
+        stroke: #c9d2e2;
+        stroke-width: 1.4;
+        stroke-linejoin: round;
+      }
+      .title {
+        fill: #0f172a;
+        font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+        font-size: 44px;
+        font-weight: 700;
+      }
+      .subtitle {
+        fill: #334155;
+        font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+        font-size: 20px;
+      }
+      .h2 {
+        fill: #0f172a;
+        font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+      }
+      .body {
+        fill: #1e293b;
+        font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+        font-size: 18px;
+      }
+      .tiny {
+        fill: #475569;
+        font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+        font-size: 16px;
+      }
+      .pillText {
+        fill: #0f172a;
+        font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .arrow {
+        stroke: #0f172a;
+        stroke-width: 2.8;
+        fill: none;
+        stroke-linecap: round;
+      }
+      .loopArrow {
+        stroke: #1d4ed8;
+        stroke-width: 2.8;
+        fill: none;
+        stroke-linecap: round;
+      }
+      .blue { fill: #dbeafe; }
+      .amber { fill: #fef3c7; }
+      .green { fill: #dcfce7; }
+      .rose { fill: #ffe4e6; }
+      .violet { fill: #ede9fe; }
+      .slate { fill: #e2e8f0; }
     </style>
-    <marker id="arrowhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-      <path d="M0,0 L12,6 L0,12 L3,6 z" fill="#111827"/>
+    <marker id="arrowHeadDark" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 L3,6 z" fill="#0f172a"/>
+    </marker>
+    <marker id="arrowHeadBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 L3,6 z" fill="#1d4ed8"/>
     </marker>
   </defs>
 
-  <rect class="bg" x="0" y="0" width="1400" height="900"/>
-  <text class="ink title" x="460" y="70">Hallx: Confidence + Risk Pipeline</text>
+  <rect class="bg" x="0" y="0" width="1600" height="980"/>
 
-  <g>
-    <rect class="box accent2" x="70" y="160" width="280" height="120" rx="16"/>
-    <rect class="box accent2" x="74" y="164" width="280" height="120" rx="16" opacity="0.55"/>
-    <text class="ink label" x="140" y="215">1) Prompt</text>
-    <text class="ink small" x="105" y="250">"Who won Nobel 2027?"</text>
-  </g>
+  <text class="title" x="62" y="80">Hallx End-to-End Working Flow</text>
+  <text class="subtitle" x="62" y="116">Detection, policy action, and feedback-driven calibration for production LLM systems</text>
 
-  <g>
-    <rect class="box accent1" x="430" y="145" width="330" height="150" rx="18"/>
-    <rect class="box accent1" x="434" y="149" width="330" height="150" rx="18" opacity="0.55"/>
-    <text class="ink label" x="510" y="200">2) OpenAIAdapter</text>
-    <text class="ink small" x="475" y="235">`agenerate(prompt)`</text>
-    <text class="ink small" x="470" y="265">returns LLM response</text>
-  </g>
+  <rect class="panel blue" x="60" y="170" width="300" height="120" rx="16"/>
+  <text class="h2" x="82" y="214">1. Prompt + Context</text>
+  <text class="body" x="82" y="246">User prompt, optional schema,</text>
+  <text class="body" x="82" y="272">and grounding context docs.</text>
 
-  <g>
-    <rect class="box accent3" x="860" y="145" width="460" height="560" rx="20"/>
-    <rect class="box accent3" x="864" y="149" width="460" height="560" rx="20" opacity="0.55"/>
-    <text class="ink label" x="1010" y="195">3) Hallx.check_async</text>
+  <rect class="panel amber" x="420" y="170" width="300" height="120" rx="16"/>
+  <text class="h2" x="442" y="214">2. LLM Generation</text>
+  <text class="body" x="442" y="246">Any adapter/callable returns</text>
+  <text class="body" x="442" y="272">response text or JSON.</text>
 
-    <rect class="box accent5" x="900" y="230" width="380" height="110" rx="14"/>
-    <text class="ink label" x="940" y="275">Schema Check</text>
-    <text class="ink small" x="930" y="310">JSON shape / required fields</text>
+  <rect class="panel green" x="780" y="150" width="760" height="430" rx="18"/>
+  <text class="h2" x="806" y="190">3. Hallx Analysis Engine (`check` / `check_async`)</text>
 
-    <rect class="box accent5" x="900" y="365" width="380" height="110" rx="14"/>
-    <text class="ink label" x="930" y="410">Consistency Check</text>
-    <text class="ink small" x="930" y="445">Repeated runs -> variance score</text>
+  <rect class="panel-soft violet" x="810" y="220" width="220" height="145" rx="12"/>
+  <text class="h2" x="830" y="254">3a. Schema</text>
+  <text class="tiny" x="830" y="284">Draft7 validation,</text>
+  <text class="tiny" x="830" y="306">null-injection checks,</text>
+  <text class="tiny" x="830" y="328">actionable issues.</text>
 
-    <rect class="box accent5" x="900" y="500" width="380" height="150" rx="14"/>
-    <text class="ink label" x="955" y="545">Grounding Check</text>
-    <text class="ink small" x="930" y="580">With context: claim vs evidence</text>
-    <text class="ink small" x="930" y="610">No context: check skipped</text>
-    <text class="ink small" x="930" y="640">issue added to report</text>
-  </g>
+  <rect class="panel-soft violet" x="1050" y="220" width="220" height="145" rx="12"/>
+  <text class="h2" x="1070" y="254">3b. Consistency</text>
+  <text class="tiny" x="1070" y="284">Repeated generations,</text>
+  <text class="tiny" x="1070" y="306">variance detection,</text>
+  <text class="tiny" x="1070" y="328">optional embeddings.</text>
 
-  <g>
-    <rect class="box accent4" x="430" y="420" width="330" height="140" rx="18"/>
-    <rect class="box accent4" x="434" y="424" width="330" height="140" rx="18" opacity="0.55"/>
-    <text class="ink label" x="465" y="470">4) Confidence Aggregation</text>
-    <text class="ink small" x="475" y="505">weighted schema/consistency/</text>
-    <text class="ink small" x="555" y="535">grounding</text>
-  </g>
+  <rect class="panel-soft violet" x="1290" y="220" width="220" height="145" rx="12"/>
+  <text class="h2" x="1310" y="254">3c. Grounding</text>
+  <text class="tiny" x="1310" y="284">Claim-context alignment,</text>
+  <text class="tiny" x="1310" y="306">forbidden-source checks,</text>
+  <text class="tiny" x="1310" y="328">URL trust policy.</text>
 
-  <g>
-    <rect class="box accent2" x="430" y="620" width="330" height="180" rx="18"/>
-    <rect class="box accent2" x="434" y="624" width="330" height="180" rx="18" opacity="0.55"/>
-    <text class="ink label" x="520" y="670">5) Output</text>
-    <text class="ink small" x="470" y="710">confidence: 0.00 - 1.00</text>
-    <text class="ink small" x="470" y="740">risk: high / medium / low</text>
-    <text class="ink small" x="470" y="770">issues + recommendation</text>
-  </g>
+  <rect class="panel-soft slate" x="810" y="390" width="700" height="160" rx="12"/>
+  <text class="h2" x="832" y="428">4. Score + Risk Mapping</text>
+  <text class="body" x="832" y="458">Weighted confidence from schema/consistency/grounding (0.0 - 1.0).</text>
+  <text class="body" x="832" y="486">Risk levels: high (&lt;0.40), medium (&lt;0.75), low (&gt;=0.75).</text>
+  <text class="body" x="832" y="514">Result object includes `scores`, `issues`, and `recommendation`.</text>
 
-  <path class="arrow" d="M350 220 C390 220, 400 220, 430 220" marker-end="url(#arrowhead)"/>
-  <path class="arrow" d="M760 220 C800 220, 810 220, 860 220" marker-end="url(#arrowhead)"/>
-  <path class="arrow" d="M1090 705 C1090 740, 800 750, 760 750" marker-end="url(#arrowhead)"/>
-  <path class="arrow" d="M595 295 C595 350, 595 370, 595 420" marker-end="url(#arrowhead)"/>
-  <path class="arrow" d="M595 560 C595 590, 595 600, 595 620" marker-end="url(#arrowhead)"/>
-  <path class="arrow" d="M760 490 C820 490, 830 490, 860 490" marker-end="url(#arrowhead)"/>
+  <rect class="panel rose" x="60" y="360" width="660" height="170" rx="16"/>
+  <text class="h2" x="82" y="404">5. Policy Action</text>
+  <text class="body" x="82" y="436">Use recommendation for middleware decisions:</text>
+  <text class="body" x="82" y="464">`proceed` or `retry`, lower temperature, add context, force JSON mode.</text>
+  <text class="body" x="82" y="492">Optional strict guardrail: raise `HallxHighRiskError` on high risk.</text>
 
-  <text class="ink small" x="80" y="855">With context -> stronger grounding signal | Without context -> grounding skipped, rely on consistency/schema.</text>
+  <rect class="panel blue" x="60" y="580" width="740" height="165" rx="16"/>
+  <text class="h2" x="82" y="624">6. Human Review + Feedback Storage</text>
+  <text class="body" x="82" y="656">Review output later, then call `record_outcome(result, label, metadata)`.</text>
+  <text class="body" x="82" y="684">Label as `correct` or `hallucinated`.</text>
+  <text class="body" x="82" y="712">Stored in SQLite at configured path (device or server volume).</text>
+
+  <rect class="panel amber" x="860" y="640" width="680" height="190" rx="16"/>
+  <text class="h2" x="884" y="684">7. Calibration Report</text>
+  <text class="body" x="884" y="716">`calibration_report(window_days=...)` summarizes outcome history.</text>
+  <text class="body" x="884" y="744">Outputs hallucination rate, risk-level breakdown, and suggested threshold.</text>
+  <text class="body" x="884" y="772">Use this to tune thresholds and operating policy for your domain.</text>
+
+  <rect class="panel green" x="860" y="860" width="680" height="82" rx="14"/>
+  <text class="h2" x="884" y="909">8. Continuous Improvement Loop</text>
+
+  <rect class="panel-soft slate" x="62" y="860" width="760" height="82" rx="14"/>
+  <text class="tiny" x="84" y="894">Default feedback DB: `HALLX_FEEDBACK_DB` env var or `~/.hallx/feedback.sqlite3`.</text>
+  <text class="tiny" x="84" y="918">Run sample: `python samples/feedback_calibration.py`.</text>
+
+  <path class="arrow" d="M360 230 L420 230" marker-end="url(#arrowHeadDark)"/>
+  <path class="arrow" d="M720 230 L780 230" marker-end="url(#arrowHeadDark)"/>
+  <path class="arrow" d="M1158 580 L380 580 L380 530" marker-end="url(#arrowHeadDark)"/>
+  <path class="arrow" d="M380 530 L380 580" marker-end="url(#arrowHeadDark)"/>
+  <path class="arrow" d="M390 530 L390 580" marker-end="url(#arrowHeadDark)"/>
+  <path class="arrow" d="M390 745 L860 745" marker-end="url(#arrowHeadDark)"/>
+  <path class="loopArrow" d="M1200 860 C1200 885, 560 885, 560 745" marker-end="url(#arrowHeadBlue)"/>
+
+  <rect x="1420" y="88" width="124" height="34" rx="17" class="panel-soft blue"/>
+  <text class="pillText" x="1450" y="110">LIVE FLOW</text>
 </svg>

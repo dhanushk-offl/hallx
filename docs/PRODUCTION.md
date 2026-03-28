@@ -20,3 +20,6 @@ python -m twine check dist/*
 - Treat external URLs in model output as untrusted unless verified.
 - Prefer deterministic model settings (`temperature <= 0.3`) in critical flows.
 - Run schema validation for machine-consumed outputs.
+- Persist review feedback with `feedback_db_path` on durable storage.
+- For server deployments, mount a writable volume and point `HALLX_FEEDBACK_DB` to that path.
+- Periodically evaluate `calibration_report(...)` and update your risk threshold policy.

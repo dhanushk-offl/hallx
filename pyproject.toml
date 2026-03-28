@@ -47,7 +47,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["hallx", "hallx.utils", "hallx.adapters", "uqlm"]
+packages = ["hallx", "hallx.utils", "hallx.adapters"]
 
 [tool.setuptools.package-data]
 hallx = ["py.typed"]

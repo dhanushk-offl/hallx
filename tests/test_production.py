@@ -1,22 +1,10 @@
-import importlib
 import math
 
 import pytest
 
-from hallx import Hallx, UQLM
+from hallx import Hallx
 from hallx.adapters import OpenAIAdapter
 from hallx.scoring import combine_scores, resolve_weights
-
-
-def test_uqlm_alias_behaves_like_hallx() -> None:
-    checker = UQLM()
-    assert isinstance(checker, Hallx)
-
-
-def test_uqlm_compatibility_namespace_exports_alias() -> None:
-    pkg = importlib.import_module("uqlm")
-    assert hasattr(pkg, "UQLM")
-    assert hasattr(pkg, "Hallx")
 
 
 def test_resolve_weights_normalizes_sum_to_one() -> None:

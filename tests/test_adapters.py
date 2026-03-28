@@ -9,6 +9,7 @@ from hallx.adapters import (
     GeminiAdapter,
     GrokAdapter,
     HuggingFaceAdapter,
+    OllamaAdapter,
     OpenAIAdapter,
     OpenRouterAdapter,
     PerplexityAdapter,
@@ -47,6 +48,7 @@ def test_openai_adapter_generate_with_mocked_transport() -> None:
         (AnthropicAdapter("m", "k"), {"content": [{"text": "d"}]}),
         (GeminiAdapter("gemini-1.5-flash", "k"), {"candidates": [{"content": {"parts": [{"text": "e"}]}}]}),
         (HuggingFaceAdapter("gpt2", "k"), {"generated_text": "f"}),
+        (OllamaAdapter("llama3"), {"message": {"content": "g"}}),
     ],
 )
 def test_provider_parse_contracts(adapter: object, response: dict[str, Any]) -> None:
