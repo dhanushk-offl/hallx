@@ -33,10 +33,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/dhanushkandhan/hallx"
-Repository = "https://github.com/dhanushkandhan/hallx"
-Issues = "https://github.com/dhanushkandhan/hallx/issues"
-Documentation = "https://github.com/dhanushkandhan/hallx#readme"
+Homepage = "https://github.com/dhanushk-offl/hallx"
+Repository = "https://github.com/dhanushk-offl/hallx"
+Issues = "https://github.com/dhanushk-offl/hallx/issues"
+Documentation = "https://github.com/dhanushk-offl/hallx#readme"
 
 [project.optional-dependencies]
 dev = [

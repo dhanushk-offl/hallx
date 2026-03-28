@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Security report
-    url: https://github.com/dhanushkandhan/hallx/security/advisories/new
+    url: https://github.com/dhanushk-offl/hallx/security/advisories/new
     about: Report vulnerabilities through GitHub Security Advisories.
   - name: Usage and integration questions
-    url: https://github.com/dhanushkandhan/hallx/discussions
+    url: https://github.com/dhanushk-offl/hallx/discussions
     about: Ask questions and discuss ideas in GitHub Discussions.

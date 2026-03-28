@@ -1,8 +1,8 @@
 # hallx
 
-[![Tests](https://github.com/dhanushkandhan/hallx/actions/workflows/test.yml/badge.svg)](https://github.com/dhanushkandhan/hallx/actions/workflows/test.yml)
-[![Release](https://github.com/dhanushkandhan/hallx/actions/workflows/release.yml/badge.svg)](https://github.com/dhanushkandhan/hallx/actions/workflows/release.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/dhanushkandhan/hallx/badge)](https://scorecard.dev/viewer/?uri=github.com/dhanushkandhan/hallx)
+[![Tests](https://github.com/dhanushk-offl/hallx/actions/workflows/test.yml/badge.svg)](https://github.com/dhanushk-offl/hallx/actions/workflows/test.yml)
+[![Release](https://github.com/dhanushk-offl/hallx/actions/workflows/release.yml/badge.svg)](https://github.com/dhanushk-offl/hallx/actions/workflows/release.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/dhanushk-offl/hallx/badge)](https://scorecard.dev/viewer/?uri=github.com/dhanushk-offl/hallx)
 [![PyPI](https://img.shields.io/pypi/v/hallx.svg)](https://pypi.org/project/hallx/)
 [![Python](https://img.shields.io/pypi/pyversions/hallx.svg)](https://pypi.org/project/hallx/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
