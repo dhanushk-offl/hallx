@@ -1,37 +1,65 @@
 # Usage Guide
 
-## Basic flow
+This guide focuses on practical integration patterns for production codebases.
+
+## Contents
+
+- Core sync integration
+- Async integration
+- Safety profiles and tuning
+- Strict gating pattern
+- Retry middleware pattern
+- Feedback storage and calibration
+- Adapter usage
+- Sample scripts
+
+## Core Sync Integration
 
 ```python
 from hallx import Hallx
 
-checker = Hallx()
+checker = Hallx(profile="balanced")
+
 result = checker.check(
-    prompt="Summarize the policy",
-    response={"summary": "Refunds are allowed in 30 days."},
+    prompt="Summarize refund policy",
+    response={"summary": "Refunds are allowed within 30 days."},
     context=["Refunds are allowed within 30 days of purchase."],
+    schema={
+        "type": "object",
+        "properties": {"summary": {"type": "string"}},
+        "required": ["summary"],
+        "additionalProperties": False,
+    },
 )
 
-print(result.confidence)
-print(result.risk_level)
+print(result.confidence, result.risk_level)
+print(result.scores)
+print(result.issues)
 print(result.recommendation)
 ```
 
-## Strict mode
+When to use sync mode:
+- request-scoped checks in API handlers
+- batch pipelines that already run synchronously
+
+## Async Integration
 
 ```python
-from hallx import Hallx, HallxHighRiskError
-
-checker = Hallx(strict=True)
-
-try:
-    checker.check(prompt="p", response="r")
-except HallxHighRiskError:
-    # Block response and trigger fallback policy.
-    pass
+result = await checker.check_async(
+    prompt=prompt,
+    response=response,
+    context=context_docs,
+    llm_adapter=adapter,
+    consistency_runs=4,
+)
 ```
 
-## Safety profiles
+When to use async mode:
+- async web services
+- high-throughput workers
+- provider adapters with async generation
+
+## Safety Profiles and Tuning
 
 ```python
 from hallx import Hallx
@@ -42,34 +70,65 @@ strict_checker = Hallx(profile="strict")
 ```
 
 Profile defaults:
-- `fast`: `consistency_runs=2`, lower skip penalty
-- `balanced`: `consistency_runs=3`
-- `strict`: `consistency_runs=4`, higher grounding weight and skip penalty
 
-Skip behavior:
-- If consistency or grounding is skipped, Hallx applies a score penalty by default.
-- You can override with `skip_penalty=...` when constructing `Hallx`.
+| Profile | `consistency_runs` | Skip penalty |
+|---|---:|---:|
+| `fast` | 2 | 0.15 |
+| `balanced` | 3 | 0.25 |
+| `strict` | 4 | 0.40 |
 
-## Middleware pattern
+Override options:
+- `weights={...}` for custom score weighting
+- `consistency_runs=...` per call
+- `skip_penalty=...` at checker construction
 
-Use `result.recommendation` as execution metadata:
+## Strict Gating Pattern
+
+```python
+from hallx import Hallx, HallxHighRiskError
+
+checker = Hallx(strict=True, profile="strict")
+
+try:
+    result = checker.check(prompt="p", response="r", context=["c"])
+except HallxHighRiskError:
+    # block output and run fallback policy
+    ...
+```
+
+Use this on:
+- machine-executed outputs
+- sensitive business workflows
+- customer-facing high-risk responses
+
+## Retry Middleware Pattern
+
+Use `result.recommendation` as runtime metadata:
 
 - `action`: `proceed` or `retry`
-- `suggested_temperature`: lower values when risk is elevated
-- `suggestions`: policy hints for the next call
+- `suggested_temperature`
+- `suggestions`
 
-## Feedback storage (SQLite) and calibration
+Example flow:
+1. Call model once.
+2. Score response with Hallx.
+3. If `action == "retry"`, rerun with lower temperature and better context.
+4. Stop after policy-defined retry budget.
+
+## Feedback Storage and Calibration
 
 ```python
 from hallx import Hallx
 
-checker = Hallx(feedback_db_path="C:/data/hallx-feedback.sqlite3")
-
+checker = Hallx(feedback_db_path="/var/lib/myapp/hallx-feedback.sqlite3")
 result = checker.check(prompt="p", response="r", context=["c"])
+
 checker.record_outcome(
     result=result,
     label="correct",  # aliases: safe -> correct, unsafe -> hallucinated
     metadata={"reviewer": "ops"},
+    prompt="p",
+    response_excerpt="r",
 )
 
 report = checker.calibration_report(window_days=30)
@@ -77,53 +136,51 @@ print(report["hallucination_rate"])
 print(report["suggested_threshold"])
 ```
 
-If `feedback_db_path` is omitted, Hallx uses:
-- `HALLX_FEEDBACK_DB` env var when set
-- otherwise an OS-adaptive default:
-- Windows: `%LOCALAPPDATA%\\hallx\\feedback.sqlite3` (fallback `%APPDATA%`)
-- macOS: `~/Library/Application Support/hallx/feedback.sqlite3`
-- Linux/servers: `$XDG_DATA_HOME/hallx/feedback.sqlite3` or `~/.local/share/hallx/feedback.sqlite3`
+Storage path resolution:
 
-Walkthrough:
-1. Run `checker.check(...)` for each model output.
-2. After human review, call `checker.record_outcome(result, label, ...)`.
-3. Collect outcomes over time in the same DB file.
-4. Run `checker.calibration_report(...)` to evaluate your current policy.
-5. Update your runtime threshold or retry policy using the report.
+| Environment | Path |
+|---|---|
+| Env override | `HALLX_FEEDBACK_DB` |
+| Windows | `%LOCALAPPDATA%\\hallx\\feedback.sqlite3` (fallback `%APPDATA%`) |
+| macOS | `~/Library/Application Support/hallx/feedback.sqlite3` |
+| Linux/servers | `$XDG_DATA_HOME/hallx/feedback.sqlite3` or `~/.local/share/hallx/feedback.sqlite3` |
 
-Ready-to-run demo:
+## Adapter Usage
+
+Available adapters:
+- OpenAI
+- Anthropic
+- Gemini
+- OpenRouter
+- Perplexity
+- Grok
+- HuggingFace
+- Ollama
+
+Choose adapters when:
+- you want standard provider payload handling
+- you need consistent sync/async integration across providers
+
+Use callables when:
+- your model stack is custom
+- you want full control over request/response flow
+
+## Sample Scripts
+
+| Script | Purpose |
+|---|---|
+| `samples/basic_sync.py` | minimal sync usage |
+| `samples/retry_strategy.py` | recommendation-driven retry loop |
+| `samples/strict_mode.py` | strict blocking behavior |
+| `samples/async_openai_adapter.py` | async check with grounding context |
+| `samples/async_openai_adapter_no_context.py` | no-context behavior |
+| `samples/feedback_calibration.py` | reviewed feedback + calibration |
+| `samples/async_openai_feedback_calibration.py` | async + feedback in one loop |
+
+Run examples:
 
 ```bash
+python samples/basic_sync.py
+python samples/retry_strategy.py
 python samples/feedback_calibration.py
-```
-
-Async + feedback in the same loop:
-
-```bash
-python samples/async_openai_feedback_calibration.py
-```
-
-## Async OpenAI adapter examples
-
-`samples/async_openai_adapter.py`:
-- runs with grounding `context`
-- includes baseline + hallucination-prone prompts
-- prints `confidence`, `risk_level`, `scores`, and `issues`
-
-`samples/async_openai_adapter_no_context.py`:
-- runs without `context`
-- demonstrates `"grounding check skipped: no context provided"`
-- uses weights `{"schema": 0.5, "consistency": 0.5, "grounding": 0.0}` to focus non-grounding signals
-
-Run:
-
-```bash
-python samples/async_openai_adapter.py
-python samples/async_openai_adapter_no_context.py
-```
-
-Set key first:
-
-```bash
-export OPENAI_API_KEY="your_key_here"
 ```

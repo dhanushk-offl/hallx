@@ -9,6 +9,26 @@
 
 Lightweight hallucination-risk scoring for production LLM pipelines.
 
+## Language
+
+- English: `README.md`
+- Tamil: [README.ta.md](README.ta.md)
+
+## Table of Contents
+
+- Overview
+- Installation
+- Quick Start
+- Scoring Model
+- Safety Profiles
+- Workflow
+- Adapters
+- Samples
+- Feedback Storage and Calibration
+- Production Notes
+- Known Limitations
+- Documentation
+
 ## Overview
 
 | Area | What Hallx Provides |
@@ -198,6 +218,7 @@ Default DB path resolution:
 
 - [Usage Guide](docs/USAGE.md)
 - [Production Notes](docs/PRODUCTION.md)
+- [Tamil README](README.ta.md)
 - [Contributing Guide](CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 - [License](LICENSE)
