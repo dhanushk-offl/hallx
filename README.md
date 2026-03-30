@@ -40,23 +40,22 @@ print(result.confidence, result.risk_level, result.recommendation)
 ## Workflow
 
 <p align="center">
-  <img src="docs/images/hallx-working-flow.svg" alt="Hallx workflow" width="100%">
+  <img src="https://res.cloudinary.com/dwir71gi2/image/upload/v1774899848/hallx-working-flow_xh213f.svg" alt="Hallx workflow" width="100%">
 </p>
 
 ## Essential Links
 
 ### Languages
-- [English](docs/README.en.md)
-- [Tamil](docs/README.ta.md)
-- [Malayalam](docs/README.ml.md)
-- [Hindi](docs/README.hi.md)
-- [Kannada](docs/README.kn.md)
-- [German](docs/README.de.md)
-- [Japanese](docs/README.ja.md)
-- [Chinese](docs/README.zh.md)
+- [English](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.en.md)
+- [Tamil](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.ta.md)
+- [Malayalam](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.ml.md)
+- [Hindi](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.hi.md)
+- [Kannada](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.kn.md)
+- [German](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.de.md)
+- [Japanese](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.ja.md)
+- [Chinese](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.zh.md)
 
 ### Community
-- [Contributing](CONTRIBUTING.md)
+- [Contributing](https://github.com/dhanushk-offl/hallx/blob/main/CONTRIBUTING.md)
 - [GitHub Sponsors](https://github.com/sponsors/dhanushk-offl)
 - [Buy Me a Coffee](https://buymeacoffee.com/itzmedhanu)
-
