@@ -46,16 +46,16 @@ print(result.confidence, result.risk_level, result.recommendation)
 ## Essential Links
 
 ### Languages
-- [English](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.en.md)
-- [Tamil](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.ta.md)
-- [Malayalam](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.ml.md)
-- [Hindi](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.hi.md)
-- [Kannada](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.kn.md)
-- [German](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.de.md)
-- [Japanese](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.ja.md)
-- [Chinese](https://github.com/dhanushk-offl/hallx/blob/main/docs/README.zh.md)
+- [English](https://github.com/dhanushk-offl/hallx/blob/master/docs/README.en.md)
+- [Tamil](https://github.com/dhanushk-offl/hallx/blob/master/docs/README.ta.md)
+- [Malayalam](https://github.com/dhanushk-offl/hallx/blob/master/docs/README.ml.md)
+- [Hindi](https://github.com/dhanushk-offl/hallx/blob/master/docs/README.hi.md)
+- [Kannada](https://github.com/dhanushk-offl/hallx/blob/master/docs/README.kn.md)
+- [German](https://github.com/dhanushk-offl/hallx/blob/master/docs/README.de.md)
+- [Japanese](https://github.com/dhanushk-offl/hallx/blob/master/docs/README.ja.md)
+- [Chinese](https://github.com/dhanushk-offl/hallx/blob/master/docs/README.zh.md)
 
 ### Community
-- [Contributing](https://github.com/dhanushk-offl/hallx/blob/main/CONTRIBUTING.md)
+- [Contributing](https://github.com/dhanushk-offl/hallx/blob/master/CONTRIBUTING.md)
 - [GitHub Sponsors](https://github.com/sponsors/dhanushk-offl)
 - [Buy Me a Coffee](https://buymeacoffee.com/itzmedhanu)
