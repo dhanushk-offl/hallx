@@ -8,6 +8,15 @@
   Lightweight hallucination-risk scoring for production LLM pipelines
 </p>
 
+<p align="center">
+  <a href="https://github.com/dhanushk-offl/hallx/actions/workflows/test.yml"><img alt="Tests" src="https://github.com/dhanushk-offl/hallx/actions/workflows/test.yml/badge.svg"></a>
+  <a href="https://github.com/dhanushk-offl/hallx/actions/workflows/release.yml"><img alt="Release" src="https://github.com/dhanushk-offl/hallx/actions/workflows/release.yml/badge.svg"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/dhanushk-offl/hallx"><img alt="OpenSSF Scorecard" src="https://api.scorecard.dev/projects/github.com/dhanushk-offl/hallx/badge"></a>
+  <a href="https://pypi.org/project/hallx/"><img alt="PyPI" src="https://img.shields.io/pypi/v/hallx.svg"></a>
+  <a href="https://pypi.org/project/hallx/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/hallx.svg"></a>
+  <a href="https://github.com/dhanushk-offl/hallx/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
+</p>
+
 ## What Is Hallx
 
 Hallx is a practical guardrail layer that evaluates LLM responses before they are trusted in downstream systems.
