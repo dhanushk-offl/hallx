@@ -1,7 +1,7 @@
-<h1 align="center">hallx</h1>
+﻿<h1 align="center">hallx</h1>
 
 <p align="center">
-  <img src="https://res.cloudinary.com/dwir71gi2/image/upload/v1774898674/Untitled_2_b5xwxj.png" alt="hallx logo" style="width:100%; max-width:720px; height:auto;">
+  <img src="https://res.cloudinary.com/dwir71gi2/image/upload/v1774898674/Untitled_2_b5xwxj.png" alt="hallx logo" style="width:50%; max-width:720px; height:auto;">
 </p>
 
 <p align="center">
