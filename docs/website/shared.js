@@ -179,6 +179,41 @@ async function loadStats() {
     });
   };
   const formatCompact = (num) => (num >= 1000 ? (num / 1000).toFixed(1) + 'k' : String(num));
+  const pypiCacheKey = 'hallx:pypistats:recent';
+
+  async function fetchJsonWithFallbacks(targetUrl) {
+    const requests = [
+      {
+        url: targetUrl,
+        parse: async (res) => res.json(),
+      },
+      {
+        url: 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl),
+        parse: async (res) => {
+          const data = await res.json();
+          return JSON.parse(data.contents);
+        },
+      },
+      {
+        url: 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl),
+        parse: async (res) => res.json(),
+      },
+      {
+        url: 'https://cors.isomorphic-git.org/' + targetUrl,
+        parse: async (res) => res.json(),
+      },
+    ];
+
+    for (const request of requests) {
+      try {
+        const res = await fetch(request.url, { cache: 'no-store' });
+        if (!res.ok) continue;
+        return await request.parse(res);
+      } catch {}
+    }
+
+    return null;
+  }
 
   let versionTag = '';
   try {
@@ -215,30 +250,39 @@ async function loadStats() {
   let monthlyDownloads = null;
 
   try {
-    const py = await fetch('https://pypistats.org/api/packages/hallx/recent');
-    if (py.ok) {
-      const d = await py.json();
-      if (typeof d?.data?.last_month === 'number') {
-        monthlyDownloads = d.data.last_month;
-      }
+    const d = await fetchJsonWithFallbacks('https://pypistats.org/api/packages/hallx/recent');
+    if (typeof d?.data?.last_month === 'number') {
+      monthlyDownloads = d.data.last_month;
+      try {
+        localStorage.setItem(
+          pypiCacheKey,
+          JSON.stringify({ last_month: monthlyDownloads, saved_at: Date.now() })
+        );
+      } catch {}
     }
   } catch {}
 
   if (monthlyDownloads === null) {
     try {
-      const pyOverall = await fetch('https://pypistats.org/api/packages/hallx/overall');
-      if (pyOverall.ok) {
-        const d = await pyOverall.json();
-        const daily = Array.isArray(d?.data) ? d.data : [];
+      const cached = JSON.parse(localStorage.getItem(pypiCacheKey) || 'null');
+      if (typeof cached?.last_month === 'number') {
+        monthlyDownloads = cached.last_month;
+      }
+    } catch {}
+  }
+
+  if (monthlyDownloads === null) {
+    try {
+      const d = await fetchJsonWithFallbacks('https://pypistats.org/api/packages/hallx/overall');
+      const daily = Array.isArray(d?.data) ? d.data : [];
+      if (daily.length) {
         const last30 = daily.slice(-30);
         monthlyDownloads = last30.reduce((acc, row) => acc + (Number(row?.downloads) || 0), 0);
       }
     } catch {}
   }
 
-  if (monthlyDownloads === null) {
-    setTextAll('[data-stat="downloads"]', 'n/a');
-  } else {
+  if (monthlyDownloads !== null) {
     setTextAll('[data-stat="downloads"]', formatCompact(monthlyDownloads));
   }
 }
