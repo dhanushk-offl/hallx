@@ -176,6 +176,7 @@ async function loadStats() {
   const setTextAll = (selector, value) => {
     document.querySelectorAll(selector).forEach((el) => {
       el.textContent = value;
+      el.classList.remove('loading-stat');
     });
   };
   const formatCompact = (num) => (num >= 1000 ? (num / 1000).toFixed(1) + 'k' : String(num));
@@ -188,18 +189,15 @@ async function loadStats() {
         parse: async (res) => res.json(),
       },
       {
-        url: 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl),
-        parse: async (res) => {
-          const data = await res.json();
-          return JSON.parse(data.contents);
-        },
+        url: 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl),
+        parse: async (res) => res.json(),
       },
       {
         url: 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(targetUrl),
         parse: async (res) => res.json(),
       },
       {
-        url: 'https://cors.isomorphic-git.org/' + targetUrl,
+        url: 'https://corsproxy.io/?url=' + encodeURIComponent(targetUrl),
         parse: async (res) => res.json(),
       },
     ];
