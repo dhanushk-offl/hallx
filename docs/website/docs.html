@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation — hallx</title>
+  <meta name="description" content="Complete usage guide for hallx — hallucination risk engine for LLMs." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav class="main-nav">
+  <div class="nav-inner">
+        <a href="index.html" class="nav-logo" aria-label="hallx home">
+      <img class="hallx-logo hallx-logo-nav" src="https://res.cloudinary.com/dwir71gi2/image/upload/v1774898674/Untitled_2_b5xwxj.png" alt="hallx logo" />
+      <span class="logo-version" data-stat="version">v1.0.3</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="docs.html" class="active">Docs</a></li>
+      <li><a href="samples.html">Samples</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="https://github.com/dhanushk-offl/hallx/discussions" target="_blank" rel="noopener">Discussions</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/dhanushk-offl/hallx" target="_blank" rel="noopener" class="nav-btn nav-btn-outline">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+        Star <span class="nav-badge-val" data-stat="stars">—</span>
+      </a>
+      <a href="https://pypi.org/project/hallx/" target="_blank" rel="noopener" class="nav-btn nav-btn-primary">PyPI</a>
+    </div>
+  </div>
+</nav>
+
+<div class="doc-layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Getting Started</div>
+      <ul>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#quickstart">Quick Start</a></li>
+        <li><a href="#result-object">Result Object</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Core Concepts</div>
+      <ul>
+        <li><a href="#scoring">Scoring Model</a></li>
+        <li><a href="#risk-levels">Risk Levels</a></li>
+        <li><a href="#profiles">Safety Profiles</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Integration Patterns</div>
+      <ul>
+        <li><a href="#sync">Sync Integration</a></li>
+        <li><a href="#async">Async Integration</a></li>
+        <li><a href="#adapters">Provider Adapters</a></li>
+        <li><a href="#strict-gate">Strict Gating</a></li>
+        <li><a href="#retry">Retry Middleware</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Operations</div>
+      <ul>
+        <li><a href="#calibration">Feedback & Calibration</a></li>
+        <li><a href="#production">Production Notes</a></li>
+        <li><a href="#limitations">Limitations</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-heading">Reference</div>
+      <ul>
+        <li><a href="samples.html">Code Samples</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="https://github.com/dhanushk-offl/hallx" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="https://pypi.org/project/hallx/" target="_blank" rel="noopener">PyPI</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- ── Content ── -->
+  <main class="doc-content">
+
+    <h1>Usage Guide</h1>
+    <p class="page-intro">
+      Practical integration patterns for production codebases. hallx works as a guardrail
+      layer between your LLM call and any downstream action — API responses, database writes,
+      or automation triggers.
+    </p>
+
+    <!-- ── Installation ── -->
+    <h2 id="installation">Installation</h2>
+    <p>Install hallx from PyPI. It requires Python 3.9 or later and has only two runtime dependencies.</p>
+
+    <div class="tabs-wrap">
+      <div class="tab-list">
+        <button class="tab-btn active" data-group="install" data-tab="pip">pip</button>
+        <button class="tab-btn" data-group="install" data-tab="dev">Development</button>
+      </div>
+      <div class="tab-pane active" data-group="install" data-tab="pip">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">shell</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code>pip install hallx</code></div>
+        </div>
+      </div>
+      <div class="tab-pane" data-group="install" data-tab="dev">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">shell</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code>git clone https://github.com/dhanushk-offl/hallx
+cd hallx
+pip install -e .[dev]</code></div>
+        </div>
+      </div>
+    </div>
+
+    <p>Runtime dependencies:</p>
+    <ul>
+      <li><code>jsonschema &gt;= 4.0, &lt; 5.0</code> — JSON schema validation</li>
+      <li><code>rapidfuzz &gt;= 3.0, &lt; 4.0</code> — fast fuzzy string matching for grounding</li>
+    </ul>
+
+    <!-- ── Quick Start ── -->
+    <h2 id="quickstart">Quick Start</h2>
+    <p>The simplest possible hallucination check. All fields except <code>prompt</code> and <code>response</code> are optional.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+      <div class="code-body"><code><span class="kw">from</span> <span class="cls">hallx</span> <span class="kw">import</span> <span class="cls">Hallx</span>
+
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">profile</span>=<span class="str">"balanced"</span>)
+
+<span class="var">result</span> = <span class="var">checker</span>.<span class="fn">check</span>(
+    <span class="key">prompt</span>=<span class="str">"Summarize the refund policy"</span>,
+    <span class="key">response</span>={<span class="str">"summary"</span>: <span class="str">"Refunds are allowed within 30 days."</span>},
+    <span class="key">context</span>=[<span class="str">"Refunds are allowed within 30 days of purchase."</span>],
+    <span class="key">schema</span>={
+        <span class="str">"type"</span>: <span class="str">"object"</span>,
+        <span class="str">"properties"</span>: {<span class="str">"summary"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}},
+        <span class="str">"required"</span>: [<span class="str">"summary"</span>],
+        <span class="str">"additionalProperties"</span>: <span class="kw">False</span>,
+    },
+)
+
+<span class="fn">print</span>(<span class="var">result</span>.confidence)    <span class="cm"># float 0.0 – 1.0</span>
+<span class="fn">print</span>(<span class="var">result</span>.risk_level)    <span class="cm"># "low" | "medium" | "high"</span>
+<span class="fn">print</span>(<span class="var">result</span>.scores)         <span class="cm"># { schema, consistency, grounding }</span>
+<span class="fn">print</span>(<span class="var">result</span>.issues)         <span class="cm"># list[str] — diagnostic messages</span>
+<span class="fn">print</span>(<span class="var">result</span>.recommendation) <span class="cm"># { action, suggested_temperature, suggestions }</span></code></div>
+    </div>
+
+    <!-- ── Result Object ── -->
+    <h2 id="result-object">Result Object</h2>
+    <p>Every <code>check()</code> call returns a <code>HallxResult</code> with these fields:</p>
+
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>confidence</code></td><td><code>float</code></td><td>Weighted aggregate score, clamped to [0.0, 1.0]</td></tr>
+        <tr><td><code>risk_level</code></td><td><code>str</code></td><td>"low", "medium", or "high"</td></tr>
+        <tr><td><code>scores</code></td><td><code>dict</code></td><td>Per-signal scores: schema, consistency, grounding</td></tr>
+        <tr><td><code>issues</code></td><td><code>list[str]</code></td><td>Human-readable diagnostic messages for each problem found</td></tr>
+        <tr><td><code>recommendation</code></td><td><code>dict</code></td><td>action ("proceed"/"retry"), suggested_temperature, suggestions list</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── Scoring Model ── -->
+    <h2 id="scoring">Scoring Model</h2>
+    <p>hallx computes confidence as a weighted sum of three normalized signals:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Formula</span></div>
+      <div class="code-body"><code>confidence = clamp(
+    schema_score      * w_schema       +  # default 0.34
+    consistency_score * w_consistency  +  # default 0.33
+    grounding_score   * w_grounding,      # default 0.33
+    0.0, 1.0
+)</code></div>
+    </div>
+
+    <p>Skipped checks (e.g. no context provided = no grounding check) are penalized by the profile's <code>skip_penalty</code>, preventing false confidence from partial analysis.</p>
+
+    <!-- ── Risk Levels ── -->
+    <h2 id="risk-levels">Risk Levels</h2>
+
+    <table>
+      <thead><tr><th>Confidence range</th><th>Risk level</th><th>Recommended action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>&lt; 0.40</td>
+          <td><span class="risk risk-high">high</span></td>
+          <td>Block. Do not serve. Retry or escalate to human review.</td>
+        </tr>
+        <tr>
+          <td>0.40 – 0.74</td>
+          <td><span class="risk risk-medium">medium</span></td>
+          <td>Caution. Surface caveats, lower temperature, consider retry.</td>
+        </tr>
+        <tr>
+          <td>&ge; 0.75</td>
+          <td><span class="risk risk-low">low</span></td>
+          <td>Proceed. Safe to use in downstream automations.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── Safety Profiles ── -->
+    <h2 id="profiles">Safety Profiles</h2>
+    <p>Choose a profile at instantiation time. Override individual settings as needed.</p>
+
+    <div class="tabs-wrap">
+      <div class="tab-list">
+        <button class="tab-btn active" data-group="profiles" data-tab="fast">fast</button>
+        <button class="tab-btn" data-group="profiles" data-tab="balanced">balanced</button>
+        <button class="tab-btn" data-group="profiles" data-tab="strict">strict</button>
+        <button class="tab-btn" data-group="profiles" data-tab="custom">custom</button>
+      </div>
+      <div class="tab-pane active" data-group="profiles" data-tab="fast">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="cm"># Optimized for low latency — 2 consistency runs, light penalty</span>
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">profile</span>=<span class="str">"fast"</span>)
+
+<span class="cm"># consistency_runs=2, skip_penalty=0.15</span></code></div>
+        </div>
+      </div>
+      <div class="tab-pane" data-group="profiles" data-tab="balanced">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="cm"># General-purpose default — 3 consistency runs, moderate penalty</span>
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">profile</span>=<span class="str">"balanced"</span>)  <span class="cm"># also the default if omitted</span>
+
+<span class="cm"># consistency_runs=3, skip_penalty=0.25</span></code></div>
+        </div>
+      </div>
+      <div class="tab-pane" data-group="profiles" data-tab="strict">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="cm"># Maximum scrutiny — 4 runs, high skip penalty</span>
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">profile</span>=<span class="str">"strict"</span>)
+
+<span class="cm"># consistency_runs=4, skip_penalty=0.40</span></code></div>
+        </div>
+      </div>
+      <div class="tab-pane" data-group="profiles" data-tab="custom">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="cm"># Override any individual setting</span>
+<span class="var">checker</span> = <span class="cls">Hallx</span>(
+    <span class="key">profile</span>=<span class="str">"balanced"</span>,
+    <span class="key">weights</span>={
+        <span class="str">"schema"</span>: <span class="num">0.5</span>,
+        <span class="str">"consistency"</span>: <span class="num">0.25</span>,
+        <span class="str">"grounding"</span>: <span class="num">0.25</span>,
+    },
+    <span class="key">consistency_runs</span>=<span class="num">5</span>,
+    <span class="key">skip_penalty</span>=<span class="num">0.30</span>,
+)</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Sync ── -->
+    <h2 id="sync">Sync Integration</h2>
+    <p>Use <code>checker.check()</code> in synchronous contexts — API handlers, batch pipelines.</p>
+
+    <div class="tabs-wrap">
+      <div class="tab-list">
+        <button class="tab-btn active" data-group="sync" data-tab="basic">Basic</button>
+        <button class="tab-btn" data-group="sync" data-tab="no-context">Without context</button>
+        <button class="tab-btn" data-group="sync" data-tab="no-schema">Without schema</button>
+      </div>
+      <div class="tab-pane active" data-group="sync" data-tab="basic">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="kw">from</span> <span class="cls">hallx</span> <span class="kw">import</span> <span class="cls">Hallx</span>
+
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">profile</span>=<span class="str">"balanced"</span>)
+
+<span class="var">result</span> = <span class="var">checker</span>.<span class="fn">check</span>(
+    <span class="key">prompt</span>=<span class="str">"Summarize refund policy"</span>,
+    <span class="key">response</span>={<span class="str">"summary"</span>: <span class="str">"Refunds are allowed within 30 days."</span>},
+    <span class="key">context</span>=[<span class="str">"Refunds are allowed within 30 days of purchase."</span>],
+    <span class="key">schema</span>={
+        <span class="str">"type"</span>: <span class="str">"object"</span>,
+        <span class="str">"properties"</span>: {<span class="str">"summary"</span>: {<span class="str">"type"</span>: <span class="str">"string"</span>}},
+        <span class="str">"required"</span>: [<span class="str">"summary"</span>],
+    },
+)
+
+<span class="kw">if</span> <span class="var">result</span>.risk_level == <span class="str">"high"</span>:
+    <span class="fn">raise</span> <span class="cls">ValueError</span>(<span class="str">"Response is high risk — do not serve"</span>)</code></div>
+        </div>
+      </div>
+      <div class="tab-pane" data-group="sync" data-tab="no-context">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="cm"># Omitting context — grounding check is skipped
+# skip_penalty is applied to the confidence score</span>
+<span class="var">result</span> = <span class="var">checker</span>.<span class="fn">check</span>(
+    <span class="key">prompt</span>=<span class="str">"What is the capital of France?"</span>,
+    <span class="key">response</span>=<span class="str">"Paris"</span>,
+    <span class="cm"># no context= or schema= provided</span>
+)
+
+<span class="cm"># Only schema + consistency signals are evaluated</span>
+<span class="fn">print</span>(<span class="var">result</span>.scores)  <span class="cm"># { schema: 1.0, consistency: 0.95, grounding: None }</span></code></div>
+        </div>
+      </div>
+      <div class="tab-pane" data-group="sync" data-tab="no-schema">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="cm"># Context provided, no schema — consistency + grounding only</span>
+<span class="var">result</span> = <span class="var">checker</span>.<span class="fn">check</span>(
+    <span class="key">prompt</span>=<span class="str">"What are the side effects of ibuprofen?"</span>,
+    <span class="key">response</span>=<span class="str">"Common side effects include nausea and stomach pain."</span>,
+    <span class="key">context</span>=[
+        <span class="str">"Common side effects of ibuprofen include nausea, stomach pain,"</span>,
+        <span class="str">"heartburn, dizziness, and mild headache."</span>,
+    ],
+    <span class="cm"># no schema= provided</span>
+)</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Async ── -->
+    <h2 id="async">Async Integration</h2>
+    <p>Use <code>checker.check_async()</code> in async web services and high-throughput workers. Pass an adapter for automatic response generation.</p>
+
+    <div class="tabs-wrap">
+      <div class="tab-list">
+        <button class="tab-btn active" data-group="async" data-tab="openai">OpenAI</button>
+        <button class="tab-btn" data-group="async" data-tab="anthropic">Anthropic</button>
+        <button class="tab-btn" data-group="async" data-tab="ollama">Ollama</button>
+        <button class="tab-btn" data-group="async" data-tab="callable">Custom callable</button>
+      </div>
+      <div class="tab-pane active" data-group="async" data-tab="openai">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="kw">import</span> asyncio
+<span class="kw">from</span> <span class="cls">hallx</span> <span class="kw">import</span> <span class="cls">Hallx</span>
+<span class="kw">from</span> <span class="cls">hallx.adapters</span> <span class="kw">import</span> <span class="cls">OpenAIAdapter</span>
+
+<span class="var">adapter</span> = <span class="cls">OpenAIAdapter</span>(<span class="key">model</span>=<span class="str">"gpt-4o-mini"</span>)
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">profile</span>=<span class="str">"balanced"</span>, <span class="key">adapter</span>=<span class="var">adapter</span>)
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    <span class="var">result</span> = <span class="kw">await</span> <span class="var">checker</span>.<span class="fn">check_async</span>(
+        <span class="key">prompt</span>=<span class="str">"What are the side effects of ibuprofen?"</span>,
+        <span class="key">context</span>=[<span class="str">"Common side effects include nausea, stomach pain..."</span>],
+    )
+    <span class="fn">print</span>(<span class="var">result</span>.confidence, <span class="var">result</span>.risk_level)
+
+asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</code></div>
+        </div>
+      </div>
+      <div class="tab-pane" data-group="async" data-tab="anthropic">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="kw">import</span> asyncio
+<span class="kw">from</span> <span class="cls">hallx</span> <span class="kw">import</span> <span class="cls">Hallx</span>
+<span class="kw">from</span> <span class="cls">hallx.adapters</span> <span class="kw">import</span> <span class="cls">AnthropicAdapter</span>
+
+<span class="var">adapter</span> = <span class="cls">AnthropicAdapter</span>(<span class="key">model</span>=<span class="str">"claude-3-5-haiku-20241022"</span>)
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">profile</span>=<span class="str">"strict"</span>, <span class="key">adapter</span>=<span class="var">adapter</span>)
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    <span class="var">result</span> = <span class="kw">await</span> <span class="var">checker</span>.<span class="fn">check_async</span>(
+        <span class="key">prompt</span>=<span class="str">"Summarize this contract clause"</span>,
+        <span class="key">context</span>=[<span class="str">"Contract clause text here..."</span>],
+    )
+    <span class="kw">if</span> <span class="var">result</span>.risk_level == <span class="str">"high"</span>:
+        <span class="fn">print</span>(<span class="str">"Block: high hallucination risk"</span>)
+
+asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</code></div>
+        </div>
+      </div>
+      <div class="tab-pane" data-group="async" data-tab="ollama">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="kw">from</span> <span class="cls">hallx</span> <span class="kw">import</span> <span class="cls">Hallx</span>
+<span class="kw">from</span> <span class="cls">hallx.adapters</span> <span class="kw">import</span> <span class="cls">OllamaAdapter</span>
+
+<span class="cm"># Local Ollama — no API key needed</span>
+<span class="var">adapter</span> = <span class="cls">OllamaAdapter</span>(<span class="key">model</span>=<span class="str">"llama3.2"</span>)
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">profile</span>=<span class="str">"fast"</span>, <span class="key">adapter</span>=<span class="var">adapter</span>)
+
+<span class="var">result</span> = <span class="var">checker</span>.<span class="fn">check</span>(
+    <span class="key">prompt</span>=<span class="str">"Explain quantum entanglement"</span>,
+    <span class="key">context</span>=[<span class="str">"Quantum entanglement is a phenomenon..."</span>],
+)</code></div>
+        </div>
+      </div>
+      <div class="tab-pane" data-group="async" data-tab="callable">
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+          <div class="code-body"><code><span class="kw">import</span> asyncio
+<span class="kw">from</span> <span class="cls">hallx</span> <span class="kw">import</span> <span class="cls">Hallx</span>
+
+<span class="cm"># Use any async callable — full control over request/response</span>
+<span class="kw">async def</span> <span class="fn">my_llm</span>(<span class="var">prompt</span>: <span class="cls">str</span>) -> <span class="cls">str</span>:
+    <span class="cm"># call your custom model stack here</span>
+    <span class="kw">return</span> <span class="str">"Your model response"</span>
+
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">profile</span>=<span class="str">"balanced"</span>)
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    <span class="var">result</span> = <span class="kw">await</span> <span class="var">checker</span>.<span class="fn">check_async</span>(
+        <span class="key">prompt</span>=<span class="str">"My prompt"</span>,
+        <span class="key">context</span>=[<span class="str">"Reference text"</span>],
+        <span class="key">llm_callable</span>=<span class="fn">my_llm</span>,
+    )
+
+asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Adapters ── -->
+    <h2 id="adapters">Provider Adapters</h2>
+    <p>All adapters follow the same interface. Set your API key as an environment variable before use.</p>
+
+    <table>
+      <thead><tr><th>Adapter</th><th>Import</th><th>Env variable</th></tr></thead>
+      <tbody>
+        <tr><td>OpenAI</td><td><code>hallx.adapters.OpenAIAdapter</code></td><td><code>OPENAI_API_KEY</code></td></tr>
+        <tr><td>Anthropic</td><td><code>hallx.adapters.AnthropicAdapter</code></td><td><code>ANTHROPIC_API_KEY</code></td></tr>
+        <tr><td>Gemini</td><td><code>hallx.adapters.GeminiAdapter</code></td><td><code>GEMINI_API_KEY</code></td></tr>
+        <tr><td>OpenRouter</td><td><code>hallx.adapters.OpenRouterAdapter</code></td><td><code>OPENROUTER_API_KEY</code></td></tr>
+        <tr><td>Perplexity</td><td><code>hallx.adapters.PerplexityAdapter</code></td><td><code>PERPLEXITY_API_KEY</code></td></tr>
+        <tr><td>Grok (xAI)</td><td><code>hallx.adapters.GrokAdapter</code></td><td><code>XAI_API_KEY</code></td></tr>
+        <tr><td>HuggingFace</td><td><code>hallx.adapters.HuggingFaceAdapter</code></td><td><code>HF_TOKEN</code></td></tr>
+        <tr><td>Ollama</td><td><code>hallx.adapters.OllamaAdapter</code></td><td>None — local</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── Strict Gating ── -->
+    <h2 id="strict-gate">Strict Gating Pattern</h2>
+    <p>Enable <code>strict=True</code> to raise <code>HallxHighRiskError</code> on high-risk responses instead of returning a result. Use on sensitive automated paths.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+      <div class="code-body"><code><span class="kw">from</span> <span class="cls">hallx</span> <span class="kw">import</span> <span class="cls">Hallx</span>, <span class="cls">HallxHighRiskError</span>
+
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">strict</span>=<span class="kw">True</span>, <span class="key">profile</span>=<span class="str">"strict"</span>)
+
+<span class="kw">try</span>:
+    <span class="var">result</span> = <span class="var">checker</span>.<span class="fn">check</span>(<span class="key">prompt</span>=<span class="str">"p"</span>, <span class="key">response</span>=<span class="str">"r"</span>, <span class="key">context</span>=[<span class="str">"c"</span>])
+    <span class="cm"># only reached when risk_level != "high"</span>
+    <span class="fn">proceed_with</span>(<span class="var">result</span>)
+<span class="kw">except</span> <span class="cls">HallxHighRiskError</span>:
+    <span class="cm"># block output and run fallback policy</span>
+    <span class="fn">return_safe_fallback</span>()</code></div>
+    </div>
+
+    <div class="callout callout-warn">
+      <strong>When to use strict mode</strong>
+      Machine-executed outputs, sensitive business workflows (financial transactions, medical advice), and customer-facing high-stakes responses.
+    </div>
+
+    <!-- ── Retry ── -->
+    <h2 id="retry">Retry Middleware Pattern</h2>
+    <p>Use <code>result.recommendation</code> fields to drive a retry loop — reducing temperature on each attempt.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+      <div class="code-body"><code><span class="kw">from</span> <span class="cls">hallx</span> <span class="kw">import</span> <span class="cls">Hallx</span>
+
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">profile</span>=<span class="str">"balanced"</span>)
+<span class="var">MAX_RETRIES</span> = <span class="num">3</span>
+
+<span class="kw">for</span> <span class="var">attempt</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="var">MAX_RETRIES</span>):
+    <span class="var">response</span> = <span class="fn">call_llm</span>(<span class="var">prompt</span>, <span class="key">temperature</span>=<span class="var">temperature</span>)
+    <span class="var">result</span>   = <span class="var">checker</span>.<span class="fn">check</span>(<span class="key">prompt</span>=<span class="var">prompt</span>, <span class="key">response</span>=<span class="var">response</span>, <span class="key">context</span>=<span class="var">ctx</span>)
+
+    <span class="kw">if</span> <span class="var">result</span>.recommendation[<span class="str">"action"</span>] == <span class="str">"proceed"</span>:
+        <span class="kw">break</span>
+
+    <span class="cm"># use suggested temperature from recommendation</span>
+    <span class="var">temperature</span> = <span class="var">result</span>.recommendation.get(<span class="str">"suggested_temperature"</span>, <span class="num">0.3</span>)
+<span class="kw">else</span>:
+    <span class="fn">escalate_to_human_review</span>(<span class="var">prompt</span>, <span class="var">result</span>)</code></div>
+    </div>
+
+    <!-- ── Calibration ── -->
+    <h2 id="calibration">Feedback &amp; Calibration</h2>
+    <p>Record human-reviewed verdicts to a local SQLite database, then run calibration reports to tune thresholds to your real-world data.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="code-lang">Python</span><button class="code-copy" title="Copy"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button></div>
+      <div class="code-body"><code><span class="kw">from</span> <span class="cls">hallx</span> <span class="kw">import</span> <span class="cls">Hallx</span>
+
+<span class="var">checker</span> = <span class="cls">Hallx</span>(<span class="key">feedback_db_path</span>=<span class="str">"/var/lib/myapp/hallx.sqlite3"</span>)
+<span class="var">result</span>  = <span class="var">checker</span>.<span class="fn">check</span>(<span class="key">prompt</span>=<span class="str">"p"</span>, <span class="key">response</span>=<span class="str">"r"</span>, <span class="key">context</span>=[<span class="str">"c"</span>])
+
+<span class="cm"># Record a reviewed outcome ("safe" or "hallucinated")</span>
+<span class="var">checker</span>.<span class="fn">record_outcome</span>(
+    <span class="key">result</span>=<span class="var">result</span>,
+    <span class="key">label</span>=<span class="str">"hallucinated"</span>,
+    <span class="key">metadata</span>={<span class="str">"reviewer"</span>: <span class="str">"qa-team"</span>},
+    <span class="key">prompt</span>=<span class="str">"p"</span>,
+    <span class="key">response_excerpt</span>=<span class="str">"r"</span>,
+)
+
+<span class="cm"># Get calibration report over the last 30 days</span>
+<span class="var">report</span> = <span class="var">checker</span>.<span class="fn">calibration_report</span>(<span class="key">window_days</span>=<span class="num">30</span>)
+<span class="fn">print</span>(<span class="var">report</span>[<span class="str">"suggested_threshold"</span>])
+<span class="fn">print</span>(<span class="var">report</span>[<span class="str">"hallucination_rate"</span>])
+<span class="fn">print</span>(<span class="var">report</span>[<span class="str">"threshold_metrics"</span>])</code></div>
+    </div>
+
+    <p>Default database path resolution:</p>
+    <table>
+      <thead><tr><th>Environment</th><th>Default path</th></tr></thead>
+      <tbody>
+        <tr><td>Env override</td><td><code>$HALLX_FEEDBACK_DB</code></td></tr>
+        <tr><td>Windows</td><td><code>%LOCALAPPDATA%\hallx\feedback.sqlite3</code></td></tr>
+        <tr><td>macOS</td><td><code>~/Library/Application Support/hallx/feedback.sqlite3</code></td></tr>
+        <tr><td>Linux</td><td><code>$XDG_DATA_HOME/hallx/feedback.sqlite3</code></td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── Production ── -->
+    <h2 id="production">Production Notes</h2>
+
+    <table>
+      <thead><tr><th>Recommendation</th><th>Reason</th></tr></thead>
+      <tbody>
+        <tr><td>Enable strict mode on sensitive paths</td><td>Block high-risk responses before side effects occur</td></tr>
+        <tr><td>Log <code>confidence</code>, <code>risk_level</code>, and <code>issues</code></td><td>Supports auditing and threshold tuning</td></tr>
+        <tr><td>Run calibration reports regularly</td><td>Adjust thresholds with real reviewed outcomes</td></tr>
+        <tr><td>Keep context quality high</td><td>Grounding score quality depends on evidence quality</td></tr>
+        <tr><td>Use async API in async services</td><td>Avoids blocking the event loop</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── Limitations ── -->
+    <h2 id="limitations">Known Limitations</h2>
+
+    <div class="callout callout-note">
+      <strong>Important</strong>
+      hallx is heuristic and does not provide formal factual guarantees. For high-stakes domains, combine hallx with domain-specific validators and human review.
+    </div>
+
+    <ul>
+      <li>High confidence can still be wrong if context is missing, stale, or incorrect.</li>
+      <li>Similarity-based grounding checks can miss nuanced semantic contradictions.</li>
+      <li>Consistency checks depend on re-running the generation — latency scales with <code>consistency_runs</code>.</li>
+      <li>Does not evaluate factual accuracy against a knowledge base (no retrieval built in).</li>
+    </ul>
+
+    <div style="margin-top:2.5rem;padding-top:2rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
+      <div>
+        <div style="font-size:0.8rem;color:var(--text-4);margin-bottom:4px;">Next</div>
+        <a href="samples.html" style="font-weight:600;color:var(--teal-dark);text-decoration:none;">Code Samples &rarr;</a>
+      </div>
+      <a href="https://github.com/dhanushk-offl/hallx/issues" target="_blank" rel="noopener" style="font-size:0.82rem;color:var(--text-3);">Something wrong? Open an issue</a>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+            <a href="index.html" class="nav-logo" style="text-decoration:none;" aria-label="hallx home">
+        <img class="hallx-logo hallx-logo-footer" src="https://res.cloudinary.com/dwir71gi2/image/upload/v1774898674/Untitled_2_b5xwxj.png" alt="hallx logo" />
+      </a>
+      <p>Lightweight hallucination risk scoring for production LLM pipelines. MIT licensed.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="#installation">Installation</a></li>
+        <li><a href="#quickstart">Quick Start</a></li>
+        <li><a href="#profiles">Safety Profiles</a></li>
+        <li><a href="#calibration">Calibration</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Code Samples</h4>
+      <ul>
+        <li><a href="samples.html">Browse All Samples</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Community</h4>
+      <ul>
+        <li><a href="https://github.com/dhanushk-offl/hallx/discussions" target="_blank">Discussions</a></li>
+        <li><a href="https://github.com/dhanushk-offl/hallx/issues" target="_blank">Issues</a></li>
+        <li><a href="https://github.com/dhanushk-offl/hallx/blob/master/CONTRIBUTING.md" target="_blank">Contributing</a></li>
+        <li><a href="https://buymeacoffee.com/dhanushkandhan" target="_blank">Buy Me a Coffee</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>Built by <a href="https://github.com/dhanushk-offl" target="_blank">Dhanush Kandhan</a> &middot; MIT License</span>
+    <span style="display:flex;gap:1rem;">
+      <a href="https://pypi.org/project/hallx/" target="_blank">PyPI</a>
+      <a href="https://github.com/dhanushk-offl/hallx" target="_blank">GitHub</a>
+    </span>
+  </div>
+</footer>
+
+<div class="toast" id="toast">Copied to clipboard</div>
+<script src="shared.js"></script>
+<script>
+  // Highlight active sidebar item on scroll
+  const sections = document.querySelectorAll('h2[id]');
+  const sideLinks = document.querySelectorAll('.sidebar ul li a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    sideLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>

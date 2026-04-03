@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hallx — Hallucination Risk Engine for LLMs</title>
+  <meta name="description" content="Lightweight, model-agnostic hallucination risk scoring for production LLM pipelines." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── homepage extras ── */
+    .overview-section {
+      padding: 64px 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .overview-section h2 {
+      font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+    .overview-section .sub {
+      font-size: 0.95rem; color: var(--text-3); margin-bottom: 2.5rem; max-width: 540px;
+    }
+    .signals-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem;
+    }
+    @media (max-width: 768px) { .signals-grid { grid-template-columns: 1fr; } }
+    .signal-card {
+      padding: 1.5rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .signal-num {
+      font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+      color: var(--teal-dark); background: var(--teal-mid);
+      padding: 2px 8px; border-radius: 10px; display: inline-block;
+      margin-bottom: 0.75rem;
+    }
+    .signal-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .signal-card p { font-size: 0.85rem; color: var(--text-3); line-height: 1.65; }
+
+    .profiles-row {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem;
+      margin-top: 1.25rem;
+    }
+    @media (max-width: 768px) { .profiles-row { grid-template-columns: 1fr; } }
+    .profile-card {
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1.25rem; background: var(--bg);
+    }
+    .profile-card .profile-tag {
+      font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600;
+      padding: 3px 9px; border-radius: 12px; display: inline-block;
+      margin-bottom: 0.6rem;
+    }
+    .tag-fast     { background: #dcfce7; color: #166534; }
+    .tag-balanced { background: #fef9c3; color: #854d0e; }
+    .tag-strict   { background: #fee2e2; color: #991b1b; }
+    .profile-card h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .profile-card p { font-size: 0.83rem; color: var(--text-3); line-height: 1.6; }
+    .profile-meta {
+      margin-top: 0.85rem; padding-top: 0.85rem;
+      border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .pm-row {
+      display: flex; justify-content: space-between;
+      font-family: var(--font-mono); font-size: 0.73rem;
+    }
+    .pm-key { color: var(--text-4); }
+    .pm-val { color: var(--text-2); font-weight: 500; }
+
+    .adapters-section {
+      padding: 56px 2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-2);
+    }
+    .adapters-list {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.5rem;
+    }
+    .adapter-chip {
+      display: flex; align-items: center; gap: 7px;
+      padding: 7px 14px; border-radius: var(--radius);
+      background: var(--bg); border: 1px solid var(--border);
+      font-size: 0.85rem; font-weight: 500; color: var(--text-2);
+      transition: border-color 0.15s;
+    }
+    .adapter-chip:hover { border-color: var(--teal); }
+    .adapter-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--teal); flex-shrink: 0; }
+
+    .workflow-section {
+      padding: 64px 2rem; border-bottom: 1px solid var(--border);
+    }
+    .workflow-img {
+      margin-top: 2rem;
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); overflow: hidden;
+      text-align: center; padding: 2rem;
+    }
+    .workflow-img img { max-width: 100%; height: auto; }
+    .workflow-steps {
+      margin-top: 2rem;
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem;
+    }
+    @media (max-width: 768px) { .workflow-steps { grid-template-columns: 1fr; } }
+    .wf-step {
+      display: flex; gap: 1rem; align-items: flex-start;
+      padding: 1.25rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+    }
+    .wf-num {
+      width: 28px; height: 28px; flex-shrink: 0;
+      background: var(--teal-mid); color: var(--teal-dark);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 0.72rem; font-weight: 700;
+    }
+    .wf-step h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.25rem; }
+    .wf-step p  { font-size: 0.82rem; color: var(--text-3); line-height: 1.6; }
+
+    .cta-band {
+      padding: 64px 2rem; background: var(--teal-dark); text-align: center;
+    }
+    .cta-band h2 {
+      font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em;
+      color: white; margin-bottom: 0.75rem;
+    }
+    .cta-band p { font-size: 0.95rem; color: #99f6e4; margin-bottom: 2rem; }
+    .cta-band .btn-primary {
+      background: white; color: var(--teal-dark);
+    }
+    .cta-band .btn-primary:hover { background: var(--teal-light); }
+    .cta-band .btn-secondary {
+      background: transparent; color: white;
+      border-color: rgba(255,255,255,0.3);
+    }
+    .cta-band .btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: white; }
+    .hero-doc-lang {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 1.1rem;
+      font-size: 0.82rem;
+      color: var(--text-3);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .hero-doc-lang .label { color: var(--text-2); font-weight: 700; }
+    .hero-doc-links { display: inline-flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .hero-doc-links a {
+      color: var(--teal-dark);
+      text-decoration: none;
+      font-weight: 600;
+      background: var(--teal-light);
+      border: 1px solid var(--teal-mid);
+      border-radius: 999px;
+      padding: 2px 9px;
+      font-size: 0.75rem;
+    }
+    .hero-doc-links a:hover { background: var(--teal-mid); }
+    .hero-doc-links .dot { display: none; }
+    .use-cases-section {
+      padding: 64px 2rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-2);
+    }
+    .use-cases-grid {
+      margin-top: 1.6rem;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+    @media (max-width: 900px) { .use-cases-grid { grid-template-columns: 1fr; } }
+    .use-case-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.15rem 1.1rem;
+    }
+    .use-case-tag {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--teal-dark);
+      background: var(--teal-mid);
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-bottom: 0.6rem;
+    }
+    .use-case-card h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.01em;
+    }
+    .use-case-card p {
+      font-size: 0.84rem;
+      color: var(--text-3);
+      line-height: 1.62;
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  New: hallx <span data-stat="version">v1.0.3</span> is out —
+  <a href="https://github.com/dhanushk-offl/hallx/releases" target="_blank" rel="noopener">See what's new</a>
+</div>
+
+<nav class="main-nav">
+  <div class="nav-inner">
+        <a href="index.html" class="nav-logo" aria-label="hallx home">
+      <img class="hallx-logo hallx-logo-nav" src="https://res.cloudinary.com/dwir71gi2/image/upload/v1774898674/Untitled_2_b5xwxj.png" alt="hallx logo" />
+      <span class="logo-version" data-stat="version">v1.0.3</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="docs.html">Docs</a></li>
+      <li><a href="samples.html">Samples</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="https://github.com/dhanushk-offl/hallx/discussions" target="_blank" rel="noopener">Discussions</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/dhanushk-offl/hallx" target="_blank" rel="noopener" class="nav-btn nav-btn-outline">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+        Star <span class="nav-badge-val" data-stat="stars">—</span>
+      </a>
+      <a href="https://pypi.org/project/hallx/" target="_blank" rel="noopener" class="nav-btn nav-btn-primary">PyPI</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-badge">MIT · Python 3.9+ · Model-agnostic</div>
+        <div class="hero-doc-lang">
+      <span class="label">View documentation in available languages:</span>
+      <span class="hero-doc-links" data-doc-langs>
+        <a href="https://github.com/dhanushk-offl/hallx/blob/master/docs/README.en.md" target="_blank" rel="noopener">English</a>
+      </span>
+    </div>
+    <h1>Hallucination risk scoring<br/>for <span>production LLMs</span></h1>
+    <p class="hero-desc">
+      hallx is a lightweight guardrail layer that scores LLM outputs across schema validity,
+      response consistency, and context grounding — giving you a single confidence score
+      before any downstream action.
+    </p>
+    <div class="hero-install" id="hero-install" title="Click to copy">
+      <span class="prompt">$</span>
+      <span>pip install hallx</span>
+      <button class="copy-btn" aria-label="Copy">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+    </div>
+    <div class="hero-ctas">
+      <a href="docs.html" class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        Get Started
+      </a>
+      <a href="samples.html" class="btn btn-secondary">Browse Samples</a>
+      <a href="https://github.com/dhanushk-offl/hallx" target="_blank" rel="noopener" class="btn btn-secondary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="hero-stat-num">3</div>
+        <div class="hero-stat-label">Risk signals</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num">8</div>
+        <div class="hero-stat-label">LLM adapters</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num" data-stat="downloads">—</div>
+        <div class="hero-stat-label">Downloads / month</div>
+      </div>
+      <div class="hero-stat">
+        <div class="hero-stat-num" data-stat="stars">—</div>
+        <div class="hero-stat-label">GitHub stars</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Signals ── -->
+<section class="overview-section">
+  <div class="page-wrap">
+    <div class="section-label">How it works</div>
+    <h2>Three signals. One confidence score.</h2>
+    <p class="sub">hallx evaluates every LLM response across three dimensions and aggregates them into a single actionable score.</p>
+    <div class="signals-grid">
+      <div class="signal-card">
+        <span class="signal-num">01 · schema</span>
+        <h3>Schema Validity</h3>
+        <p>Validates output structure against a JSON schema. Catches null injections, missing required fields, and type mismatches before they reach downstream consumers.</p>
+      </div>
+      <div class="signal-card">
+        <span class="signal-num">02 · consistency</span>
+        <h3>Response Consistency</h3>
+        <p>Re-runs generation multiple times and checks stability. Flip-flopping outputs signal uncertainty — a reliable indicator of potential hallucination.</p>
+      </div>
+      <div class="signal-card">
+        <span class="signal-num">03 · grounding</span>
+        <h3>Context Grounding</h3>
+        <p>Measures claim-to-context alignment using fast fuzzy matching. Detects when responses drift from the provided source material.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:3rem;">
+      <div class="section-label">Safety profiles</div>
+      <h2>Pick your risk tolerance</h2>
+      <p class="sub">Three built-in profiles tune scoring behavior to your deployment context.</p>
+      <div class="profiles-row">
+        <div class="profile-card">
+          <span class="profile-tag tag-fast">fast</span>
+          <h3>Fast</h3>
+          <p>Optimized for low latency. Ideal for real-time chat where speed matters more than exhaustive validation.</p>
+          <div class="profile-meta">
+            <div class="pm-row"><span class="pm-key">consistency_runs</span><span class="pm-val">2</span></div>
+            <div class="pm-row"><span class="pm-key">skip_penalty</span><span class="pm-val">0.15</span></div>
+          </div>
+        </div>
+        <div class="profile-card">
+          <span class="profile-tag tag-balanced">balanced</span>
+          <h3>Balanced</h3>
+          <p>The sensible default. General-purpose configuration for most production pipelines.</p>
+          <div class="profile-meta">
+            <div class="pm-row"><span class="pm-key">consistency_runs</span><span class="pm-val">3</span></div>
+            <div class="pm-row"><span class="pm-key">skip_penalty</span><span class="pm-val">0.25</span></div>
+          </div>
+        </div>
+        <div class="profile-card">
+          <span class="profile-tag tag-strict">strict</span>
+          <h3>Strict</h3>
+          <p>Maximum scrutiny for sensitive pipelines — medical, legal, or financial workflows.</p>
+          <div class="profile-meta">
+            <div class="pm-row"><span class="pm-key">consistency_runs</span><span class="pm-val">4</span></div>
+            <div class="pm-row"><span class="pm-key">skip_penalty</span><span class="pm-val">0.40</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- Use Cases -->
+<section class="use-cases-section">
+  <div class="page-wrap">
+    <div class="section-label">Use Cases</div>
+    <h2 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:0.35rem;">Who uses hallx and where it helps</h2>
+    <p style="font-size:0.9rem;color:var(--text-3);max-width:640px;">hallx is useful wherever LLM output can trigger business actions, user-facing answers, or structured data writes.</p>
+    <div class="use-cases-grid">
+      <div class="use-case-card">
+        <span class="use-case-tag">Medical</span>
+        <h3>Clinical assistant safety checks</h3>
+        <p>Screen patient-facing summaries, triage notes, and medication guidance before delivery. Route high-risk outputs to clinician review.</p>
+      </div>
+      <div class="use-case-card">
+        <span class="use-case-tag">Legal</span>
+        <h3>Contract and policy copilots</h3>
+        <p>Validate groundedness and consistency for clause summaries, legal Q&A, and compliance responses before sharing with clients or teams.</p>
+      </div>
+      <div class="use-case-card">
+        <span class="use-case-tag">Agentic</span>
+        <h3>Tool-using autonomous agents</h3>
+        <p>Gate action-taking agents before database writes, external API calls, or workflow triggers so risky generations do not execute automatically.</p>
+      </div>
+      <div class="use-case-card">
+        <span class="use-case-tag">Customer Support</span>
+        <h3>Support chat and ticket replies</h3>
+        <p>Score assistant-generated responses for policy accuracy and consistency. Escalate uncertain answers before they reach customers.</p>
+      </div>
+      <div class="use-case-card">
+        <span class="use-case-tag">Finance</span>
+        <h3>Financial analysis and reporting</h3>
+        <p>Apply stricter checks for earnings summaries, risk notes, and advisory drafts where unsupported claims can create compliance exposure.</p>
+      </div>
+      <div class="use-case-card">
+        <span class="use-case-tag">Research</span>
+        <h3>Literature and evidence assistants</h3>
+        <p>Check citation-like claims against provided context and flag low-confidence outputs during paper summarization and evidence synthesis.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ?????? Adapters ?????? -->
+<section class="adapters-section">
+  <div class="page-wrap">
+    <div class="section-label">Integrations</div>
+    <h2 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:0.35rem;">Works with your stack</h2>
+    <p style="font-size:0.9rem;color:var(--text-3);max-width:480px;">Built-in adapters for the most popular providers. Use a plain callable for anything else.</p>
+    <div class="adapters-list">
+      <div class="adapter-chip"><span class="adapter-dot"></span>OpenAI</div>
+      <div class="adapter-chip"><span class="adapter-dot"></span>Anthropic</div>
+      <div class="adapter-chip"><span class="adapter-dot"></span>Gemini</div>
+      <div class="adapter-chip"><span class="adapter-dot"></span>OpenRouter</div>
+      <div class="adapter-chip"><span class="adapter-dot"></span>Perplexity</div>
+      <div class="adapter-chip"><span class="adapter-dot"></span>Grok (xAI)</div>
+      <div class="adapter-chip"><span class="adapter-dot"></span>HuggingFace</div>
+      <div class="adapter-chip"><span class="adapter-dot"></span>Ollama</div>
+      <div class="adapter-chip" style="border-style:dashed;color:var(--text-4);">+ custom callable</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Workflow ── -->
+<section class="workflow-section">
+  <div class="page-wrap">
+    <div class="section-label">Pipeline</div>
+    <h2 style="font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:0.35rem;">hallx in your pipeline</h2>
+    <p style="font-size:0.9rem;color:var(--text-3);max-width:520px;">hallx sits between your LLM call and any downstream action — API responses, database writes, automation triggers.</p>
+
+    <div class="workflow-img">
+      <img src="https://github.com/dhanushk-offl/hallx/raw/master/docs/images/hallx-working-flow.svg"
+           alt="hallx working flow diagram"
+           onerror="this.parentElement.style.display='none'" />
+    </div>
+
+    <div class="workflow-steps">
+      <div class="wf-step"><div class="wf-num">01</div><div><h4>Collect inputs</h4><p>Prompt, optional context documents, optional JSON schema.</p></div></div>
+      <div class="wf-step"><div class="wf-num">02</div><div><h4>Generate response</h4><p>Via a provider adapter or your own async callable.</p></div></div>
+      <div class="wf-step"><div class="wf-num">03</div><div><h4>Run three checks</h4><p>Schema, consistency, and grounding evaluated in parallel.</p></div></div>
+      <div class="wf-step"><div class="wf-num">04</div><div><h4>Get confidence score</h4><p>Weighted scores aggregated into 0.0 – 1.0 with risk level.</p></div></div>
+      <div class="wf-step"><div class="wf-num">05</div><div><h4>Apply policy</h4><p>Use <code style="font-family:var(--font-mono);font-size:0.82em;background:var(--bg-3);padding:1px 5px;border-radius:3px;">recommendation.action</code> to proceed or retry.</p></div></div>
+      <div class="wf-step"><div class="wf-num">06</div><div><h4>Record & calibrate</h4><p>Persist reviewed outcomes and tune thresholds over time.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<div class="cta-band">
+  <h2>Ready to reduce hallucination risk?</h2>
+  <p>Get started with one command. No API keys, no external models required.</p>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+    <a href="docs.html" class="btn btn-primary">Read the Docs</a>
+    <a href="https://github.com/dhanushk-offl/hallx" target="_blank" rel="noopener" class="btn btn-secondary">View on GitHub</a>
+  </div>
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+            <a href="index.html" class="nav-logo" style="text-decoration:none;" aria-label="hallx home">
+        <img class="hallx-logo hallx-logo-footer" src="https://res.cloudinary.com/dwir71gi2/image/upload/v1774898674/Untitled_2_b5xwxj.png" alt="hallx logo" />
+      </a>
+      <p>Lightweight hallucination risk scoring for production LLM pipelines. MIT licensed. Built by Dhanush Kandhan.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="docs.html#installation">Installation</a></li>
+        <li><a href="docs.html#quickstart">Quick Start</a></li>
+        <li><a href="docs.html#profiles">Safety Profiles</a></li>
+        <li><a href="docs.html#adapters">Adapters</a></li>
+        <li><a href="docs.html#calibration">Calibration</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Code Samples</h4>
+      <ul>
+        <li><a href="samples.html#basic-sync">Basic Sync</a></li>
+        <li><a href="samples.html#async-adapter">Async + Adapter</a></li>
+        <li><a href="samples.html#retry">Retry Strategy</a></li>
+        <li><a href="samples.html#strict">Strict Mode</a></li>
+        <li><a href="samples.html#feedback">Feedback Loop</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Community</h4>
+      <ul>
+        <li><a href="https://github.com/dhanushk-offl/hallx/discussions" target="_blank" rel="noopener">Discussions</a></li>
+        <li><a href="https://github.com/dhanushk-offl/hallx/issues" target="_blank" rel="noopener">Issues</a></li>
+        <li><a href="https://github.com/dhanushk-offl/hallx/blob/master/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="https://buymeacoffee.com/dhanushkandhan" target="_blank" rel="noopener">Buy Me a Coffee</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>Built by <a href="https://github.com/dhanushk-offl" target="_blank" rel="noopener">Dhanush Kandhan</a> &middot; MIT License &middot; <span data-stat="version">v1.0.3</span></span>
+    <span style="display:flex;gap:1rem;">
+      <a href="https://pypi.org/project/hallx/" target="_blank" rel="noopener">PyPI</a>
+      <a href="https://github.com/dhanushk-offl/hallx" target="_blank" rel="noopener">GitHub</a>
+    </span>
+  </div>
+</footer>
+
+<div class="toast" id="toast">Copied to clipboard</div>
+<script src="shared.js"></script>
+</body>
+</html>

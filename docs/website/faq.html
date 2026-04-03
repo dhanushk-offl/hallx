@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAQ — hallx</title>
+  <meta name="description" content="Frequently asked questions about hallx — hallucination risk engine for LLMs." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .faq-page { max-width: 780px; margin: 0 auto; padding: 2.5rem 2rem; }
+    .faq-page h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.4rem; }
+    .faq-page .page-intro { font-size: 0.95rem; color: var(--text-3); line-height: 1.7; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; margin-bottom: 2rem; }
+
+    .faq-group { margin-bottom: 2.5rem; }
+    .faq-group-title {
+      font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--text-4);
+      margin-bottom: 0.75rem;
+    }
+
+    .faq-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: 8px;
+      transition: border-color 0.15s;
+    }
+    .faq-item.open { border-color: var(--teal); }
+    .faq-q {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      padding: 1rem 1.25rem;
+      font-size: 0.925rem; font-weight: 600; color: var(--text);
+      cursor: pointer; user-select: none; gap: 1rem;
+      background: var(--bg);
+      transition: background 0.15s;
+    }
+    .faq-item.open .faq-q { background: var(--teal-light); }
+    .faq-q:hover { background: var(--bg-2); }
+    .faq-item.open .faq-q:hover { background: var(--teal-light); }
+    .faq-chevron {
+      width: 22px; height: 22px; flex-shrink: 0;
+      border-radius: 50%; background: var(--bg-3);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.25s, background 0.15s;
+      margin-top: 1px;
+    }
+    .faq-chevron svg { color: var(--text-4); transition: color 0.15s; }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); background: var(--teal-mid); }
+    .faq-item.open .faq-chevron svg { color: var(--teal-dark); }
+    .faq-a {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.4,0,0.2,1);
+    }
+    .faq-item.open .faq-a { max-height: 600px; }
+    .faq-a-body {
+      padding: 0 1.25rem 1.25rem;
+      font-size: 0.9rem; color: var(--text-2); line-height: 1.75;
+    }
+    .faq-a-body p { margin-bottom: 0.6rem; }
+    .faq-a-body p:last-child { margin-bottom: 0; }
+    .faq-a-body code {
+      font-family: var(--font-mono); font-size: 0.83em;
+      background: var(--bg-3); padding: 1px 6px;
+      border-radius: 4px; color: var(--teal-dark);
+    }
+    .faq-a-body ul { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+    .faq-a-body li { margin-bottom: 0.25rem; }
+
+    .community-band {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      margin-top: 2.5rem;
+      display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap;
+    }
+    .community-band h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .community-band p { font-size: 0.875rem; color: var(--text-3); line-height: 1.65; margin-bottom: 1rem; }
+    .community-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .contrib-section { margin-top: 2.5rem; }
+    .contrib-section h2 { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.35rem; }
+    .contrib-section .sub { font-size: 0.9rem; color: var(--text-3); margin-bottom: 1.5rem; }
+    .contrib-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .contrib-grid { grid-template-columns: 1fr; } }
+    .contrib-card {
+      border: 1px solid var(--border); border-radius: var(--radius-lg);
+      padding: 1.25rem;
+    }
+    .contrib-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .contrib-card p { font-size: 0.83rem; color: var(--text-3); line-height: 1.6; margin-bottom: 1rem; }
+
+    .coffee-card {
+      background: #fffbeb; border-color: #fcd34d;
+    }
+    .btn-coffee {
+      background: #f59e0b; color: white;
+      border-color: #f59e0b;
+    }
+    .btn-coffee:hover { background: #d97706; border-color: #d97706; }
+  </style>
+</head>
+<body>
+
+<nav class="main-nav">
+  <div class="nav-inner">
+        <a href="index.html" class="nav-logo" aria-label="hallx home">
+      <img class="hallx-logo hallx-logo-nav" src="https://res.cloudinary.com/dwir71gi2/image/upload/v1774898674/Untitled_2_b5xwxj.png" alt="hallx logo" />
+      <span class="logo-version" data-stat="version">v1.0.3</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="docs.html">Docs</a></li>
+      <li><a href="samples.html">Samples</a></li>
+      <li><a href="faq.html" class="active">FAQ</a></li>
+      <li><a href="https://github.com/dhanushk-offl/hallx/discussions" target="_blank" rel="noopener">Discussions</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="https://github.com/dhanushk-offl/hallx" target="_blank" rel="noopener" class="nav-btn nav-btn-outline">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+        Star <span class="nav-badge-val" data-stat="stars">—</span>
+      </a>
+      <a href="https://pypi.org/project/hallx/" target="_blank" rel="noopener" class="nav-btn nav-btn-primary">PyPI</a>
+    </div>
+  </div>
+</nav>
+
+<div class="faq-page">
+  <h1>Frequently Asked Questions</h1>
+  <p class="page-intro">
+    Can't find what you're looking for? Open a question in
+    <a href="https://github.com/dhanushk-offl/hallx/discussions" target="_blank" rel="noopener">GitHub Discussions</a>
+    or <a href="https://github.com/dhanushk-offl/hallx/issues" target="_blank" rel="noopener">file an issue</a>.
+  </p>
+
+  <!-- ── General ── -->
+  <div class="faq-group">
+    <div class="faq-group-title">General</div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        What exactly does hallx check for?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>hallx evaluates LLM outputs across three signals:</p>
+          <ul>
+            <li><strong>Schema validity</strong> — whether the output conforms to a JSON schema and is free from null injections or type violations.</li>
+            <li><strong>Consistency</strong> — whether the response is stable across multiple generations. Flip-flopping answers indicate uncertainty and potential hallucination.</li>
+            <li><strong>Grounding</strong> — whether the response's claims are aligned with the provided context, measured via fast fuzzy matching.</li>
+          </ul>
+          <p>These three signals are combined into a single <code>confidence</code> score (0.0–1.0) and a <code>risk_level</code> of "low", "medium", or "high".</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        Does hallx call an LLM itself, or require an API key?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>No — hallx is a scoring layer, not a model. It does not make any external API calls by itself and does not require any API key out of the box.</p>
+          <p>You provide the LLM response (pre-generated), and hallx scores it. If you use one of the built-in provider adapters (OpenAI, Anthropic, etc.) to also generate the response, then that adapter requires your API key set in the relevant environment variable.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        How is hallx different from other hallucination detection tools?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>hallx is fully heuristic — it does not require a judge LLM, an NLI model, or any embedding model. This makes it fast and cheap to run in production without additional API costs or infrastructure.</p>
+          <p>The trade-off is that it can miss nuanced semantic contradictions that a model-based detector might catch. hallx is designed as a practical production guardrail rather than a research-grade factual verification system. For high-stakes domains, combine hallx with domain validators and human review.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        What Python versions does hallx support?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>hallx supports Python 3.9, 3.10, 3.11, and 3.12. It has only two runtime dependencies: <code>jsonschema &gt;= 4.0</code> for schema validation and <code>rapidfuzz &gt;= 3.0</code> for fast fuzzy string matching. No ML frameworks or heavy dependencies are required.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Usage ── -->
+  <div class="faq-group">
+    <div class="faq-group-title">Usage</div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        Can I use hallx without providing context or a schema?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>Yes — both <code>context</code> and <code>schema</code> are optional. Omitting them simply skips the corresponding checks. However, skipped checks are penalized by the profile's <code>skip_penalty</code> value, which prevents hallx from reporting falsely high confidence when analysis is partial.</p>
+          <p>The grounding score is only as good as the evidence you provide, so ensure context documents are accurate and relevant when grounding quality matters.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        What is the <code>skip_penalty</code> and why does it exist?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>The skip penalty is subtracted from the confidence score for each check that could not be run due to missing inputs (e.g., no context = no grounding check). Without it, a response checked only on one signal out of three could appear artificially trustworthy.</p>
+          <p>The penalty encourages you to provide all three inputs (prompt, context, schema) when confidence accuracy matters. It can be tuned per profile or overridden at construction time.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        When should I use <code>strict=True</code>?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>Use <code>strict=True</code> on any path where a high-risk response could trigger side effects — database writes, API calls, automated actions, or medical/legal/financial advice delivery. In strict mode, hallx raises <code>HallxHighRiskError</code> on any high-risk result, making it impossible to accidentally proceed.</p>
+          <p>In non-strict mode (the default), you inspect <code>result.risk_level</code> and decide yourself. Strict mode enforces that decision programmatically.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        Is hallx suitable for real-time production use?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>Yes. Use <code>profile="fast"</code> with <code>consistency_runs=2</code> to minimize latency. The async API (<code>check_async()</code>) is non-blocking and suitable for async web services and high-throughput workers.</p>
+          <p>The main latency cost comes from the number of consistency re-runs, since each run makes an additional LLM call. With <code>profile="fast"</code>, this is only 2 additional calls. With <code>profile="strict"</code> it's 4.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        How do I customize the scoring weights?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>Pass a <code>weights</code> dict at construction time. The keys are <code>"schema"</code>, <code>"consistency"</code>, and <code>"grounding"</code>, and the values should sum to 1.0:</p>
+          <p><code>Hallx(weights={"schema": 0.5, "consistency": 0.25, "grounding": 0.25})</code></p>
+          <p>If schema validation is your primary concern (e.g., structured API outputs), increase its weight. If grounding is critical (e.g., RAG pipelines), increase grounding weight accordingly.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Calibration ── -->
+  <div class="faq-group">
+    <div class="faq-group-title">Feedback &amp; Calibration</div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        What does the feedback and calibration system do?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>You call <code>record_outcome()</code> after each human review to persist the verdict ("safe" / "hallucinated") to a local SQLite database alongside the hallx score. Over time, this builds a history of how well your threshold is performing.</p>
+          <p><code>calibration_report()</code> analyzes this history and suggests a revised confidence threshold that better matches your actual hallucination rate — tuning hallx to your specific use case rather than relying solely on the default risk mapping.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        Where is the feedback database stored by default?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>The default path depends on your platform, following OS conventions:</p>
+          <ul>
+            <li><strong>Linux:</strong> <code>$XDG_DATA_HOME/hallx/feedback.sqlite3</code> (or <code>~/.local/share/hallx/</code>)</li>
+            <li><strong>macOS:</strong> <code>~/Library/Application Support/hallx/feedback.sqlite3</code></li>
+            <li><strong>Windows:</strong> <code>%LOCALAPPDATA%\hallx\feedback.sqlite3</code></li>
+          </ul>
+          <p>Override by setting the <code>HALLX_FEEDBACK_DB</code> environment variable, or passing <code>feedback_db_path=</code> at construction time.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Limitations ── -->
+  <div class="faq-group">
+    <div class="faq-group-title">Limitations</div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        Can hallx guarantee a response is factually correct?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <p>No. hallx is heuristic and does not provide formal factual guarantees. A high confidence score means the response is internally consistent, schema-valid, and well-grounded in the provided context — not that it is objectively true.</p>
+          <p>If the context itself is wrong, stale, or incomplete, the grounding check will pass against bad evidence. For high-stakes domains (medical, legal, financial), always combine hallx with domain-specific validators and human review.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        What can hallx miss?
+        <div class="faq-chevron"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div>
+      </div>
+      <div class="faq-a">
+        <div class="faq-a-body">
+          <ul>
+            <li>Nuanced semantic contradictions that fuzzy matching cannot detect.</li>
+            <li>Hallucinations that are internally consistent and schema-valid.</li>
+            <li>Factual errors in domains not covered by the provided context.</li>
+            <li>Subtle tone or framing issues that change meaning without changing surface text.</li>
+          </ul>
+          <p>For these cases, complement hallx with model-based evaluation, retrieval-augmented verification, or domain expert review.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Community ── -->
+  <div class="community-band">
+    <div style="flex:1;min-width:240px;">
+      <h3>Still have questions?</h3>
+      <p>Open a discussion on GitHub for community support, feature requests, or to share how you use hallx in production.</p>
+      <div class="community-actions">
+        <a href="https://github.com/dhanushk-offl/hallx/discussions" target="_blank" rel="noopener" class="btn btn-primary">Open a Discussion</a>
+        <a href="https://github.com/dhanushk-offl/hallx/issues" target="_blank" rel="noopener" class="btn btn-secondary">File an Issue</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Contributing ── -->
+  <div class="contrib-section">
+    <h2>Contributing &amp; Support</h2>
+    <p class="sub">hallx is open source and welcomes contributions of all kinds.</p>
+    <div class="contrib-grid">
+      <div class="contrib-card">
+        <h4>Contribute Code</h4>
+        <p>Add new adapters, improve scoring heuristics, write tests, or fix bugs. Read the contributing guide to get started.</p>
+        <a href="https://github.com/dhanushk-offl/hallx/blob/master/CONTRIBUTING.md" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:0.83rem;padding:7px 14px;">Contributing Guide</a>
+      </div>
+      <div class="contrib-card coffee-card">
+        <h4>Support the Project</h4>
+        <p>hallx is built and maintained by one person. If it's saved you time in production, consider buying Dhanush a coffee.</p>
+        <a href="https://buymeacoffee.com/dhanushkandhan" target="_blank" rel="noopener" class="btn btn-coffee" style="font-size:0.83rem;padding:7px 14px;">Buy Me a Coffee</a>
+      </div>
+      <div class="contrib-card">
+        <h4>Code of Conduct</h4>
+        <p>All contributors and community members are expected to follow the project's code of conduct.</p>
+        <a href="https://github.com/dhanushk-offl/hallx/blob/master/CODE_OF_CONDUCT.md" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:0.83rem;padding:7px 14px;">Read Code of Conduct</a>
+      </div>
+      <div class="contrib-card">
+        <h4>License</h4>
+        <p>hallx is released under the MIT License. Free to use, modify, and distribute in personal and commercial projects.</p>
+        <a href="https://github.com/dhanushk-offl/hallx/blob/master/LICENSE" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:0.83rem;padding:7px 14px;">View License</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+            <a href="index.html" class="nav-logo" style="text-decoration:none;" aria-label="hallx home">
+        <img class="hallx-logo hallx-logo-footer" src="https://res.cloudinary.com/dwir71gi2/image/upload/v1774898674/Untitled_2_b5xwxj.png" alt="hallx logo" />
+      </a>
+      <p>Lightweight hallucination risk scoring for production LLM pipelines. MIT licensed.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Documentation</h4>
+      <ul>
+        <li><a href="docs.html">Usage Guide</a></li>
+        <li><a href="docs.html#profiles">Safety Profiles</a></li>
+        <li><a href="docs.html#calibration">Calibration</a></li>
+        <li><a href="samples.html">Code Samples</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Package</h4>
+      <ul>
+        <li><a href="https://pypi.org/project/hallx/" target="_blank">PyPI</a></li>
+        <li><a href="https://github.com/dhanushk-offl/hallx" target="_blank">GitHub</a></li>
+        <li><a href="https://github.com/dhanushk-offl/hallx/releases" target="_blank">Changelog</a></li>
+        <li><a href="https://github.com/dhanushk-offl/hallx/blob/master/LICENSE" target="_blank">License</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Community</h4>
+      <ul>
+        <li><a href="https://github.com/dhanushk-offl/hallx/discussions" target="_blank">Discussions</a></li>
+        <li><a href="https://github.com/dhanushk-offl/hallx/issues" target="_blank">Issues</a></li>
+        <li><a href="https://github.com/dhanushk-offl/hallx/blob/master/CONTRIBUTING.md" target="_blank">Contributing</a></li>
+        <li><a href="https://buymeacoffee.com/dhanushkandhan" target="_blank">Buy Me a Coffee</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>Built by <a href="https://github.com/dhanushk-offl" target="_blank">Dhanush Kandhan</a> &middot; MIT License &middot; <span data-stat="version">v1.0.3</span></span>
+    <span style="display:flex;gap:1rem;">
+      <a href="https://pypi.org/project/hallx/" target="_blank">PyPI</a>
+      <a href="https://github.com/dhanushk-offl/hallx" target="_blank">GitHub</a>
+    </span>
+  </div>
+</footer>
+
+<div class="toast" id="toast">Copied to clipboard</div>
+<script src="shared.js"></script>
+</body>
+</html>
