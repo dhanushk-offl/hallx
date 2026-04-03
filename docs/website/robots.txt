@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dhanushk-offl.github.io/hallx/docs/website/sitemap.xml
