@@ -3,13 +3,26 @@
 import json
 from typing import Any, Callable, Iterable, Mapping, Optional
 
+from hallx.attribution import (
+    check_claim_grounding,
+    check_claim_grounding_async,
+)
 from hallx.calibration import FeedbackStore
 from hallx.consistency import check_consistency, check_consistency_async
-from hallx.grounding import check_grounding
+from hallx.faithfulness.base import FaithfulnessVerifier
+from hallx.grounding import check_grounding, check_grounding_async
 from hallx.retry import build_recommendation
 from hallx.schema import validate_schema, validate_schema_detailed
 from hallx.scoring import combine_scores, resolve_weights, risk_level_from_confidence
-from hallx.types import HallxHighRiskError, HallxResult, LLMAdapter, SchemaValidationResult
+from hallx.toolcalls import score_tool_calls
+from hallx.types import (
+    ClaimGroundingResult,
+    HallxHighRiskError,
+    HallxResult,
+    LLMAdapter,
+    SchemaValidationResult,
+    ToolCallResult,
+)
 
 
 _PROFILE_WEIGHTS = {
@@ -55,6 +68,8 @@ class Hallx:
         embedding_callable: Optional[Callable[[str], Any]] = None,
         context_embeddings: Optional[list[list[float]]] = None,
         allow_web_sources: bool = False,
+        claims: bool = False,
+        verifier: Optional[FaithfulnessVerifier] = None,
     ) -> HallxResult:
         """Run all enabled checks and return a typed result."""
         response_text, parsed_response = _coerce_response(response)
@@ -99,6 +114,16 @@ class Hallx:
         if grounding_penalty_issue is not None:
             grounding_issues.append(grounding_penalty_issue)
 
+        evidence = self._claims_sync(
+            response=response_text,
+            context=context,
+            embedding_callable=embedding_callable,
+            context_embeddings=context_embeddings,
+            allow_web_sources=allow_web_sources,
+            claims=claims,
+            verifier=verifier,
+        )
+
         scores = {
             "schema": schema_score,
             "consistency": consistency_score,
@@ -120,6 +145,7 @@ class Hallx:
             scores=scores,
             issues=issues,
             recommendation=recommendation,
+            evidence=evidence,
         )
 
         if self._strict and risk_level == "high":
@@ -142,6 +168,8 @@ class Hallx:
         embedding_callable: Optional[Callable[[str], Any]] = None,
         context_embeddings: Optional[list[list[float]]] = None,
         allow_web_sources: bool = False,
+        claims: bool = False,
+        verifier: Optional[FaithfulnessVerifier] = None,
     ) -> HallxResult:
         """Async version of ``check`` supporting sync or async LLM callables."""
         response_text, parsed_response = _coerce_response(response)
@@ -170,7 +198,7 @@ class Hallx:
         if consistency_penalty_issue is not None:
             consistency_issues.append(consistency_penalty_issue)
 
-        grounding_score, grounding_issues = check_grounding(
+        grounding_score, grounding_issues = await check_grounding_async(
             response=response_text,
             context_docs=context or [],
             embedding_callable=embedding_callable,
@@ -185,6 +213,16 @@ class Hallx:
         )
         if grounding_penalty_issue is not None:
             grounding_issues.append(grounding_penalty_issue)
+
+        evidence = await self._claims_async(
+            response=response_text,
+            context=context,
+            embedding_callable=embedding_callable,
+            context_embeddings=context_embeddings,
+            allow_web_sources=allow_web_sources,
+            claims=claims,
+            verifier=verifier,
+        )
 
         scores = {
             "schema": schema_score,
@@ -207,6 +245,7 @@ class Hallx:
             scores=scores,
             issues=issues,
             recommendation=recommendation,
+            evidence=evidence,
         )
 
         if self._strict and risk_level == "high":
@@ -216,10 +255,68 @@ class Hallx:
 
         return result
 
+    def _claims_sync(
+        self,
+        *,
+        response: str,
+        context: Optional[Iterable[str]],
+        embedding_callable: Optional[Callable[[str], Any]],
+        context_embeddings: Optional[list[list[float]]],
+        allow_web_sources: bool,
+        claims: bool,
+        verifier: Optional[FaithfulnessVerifier] = None,
+    ) -> Optional[ClaimGroundingResult]:
+        if not claims:
+            return None
+        return check_claim_grounding(
+            response=response,
+            context_docs=list(context or []),
+            embedding_callable=embedding_callable,
+            context_embeddings=context_embeddings,
+            allow_web=allow_web_sources,
+            verifier=verifier,
+        )
+
+    async def _claims_async(
+        self,
+        *,
+        response: str,
+        context: Optional[Iterable[str]],
+        embedding_callable: Optional[Callable[[str], Any]],
+        context_embeddings: Optional[list[list[float]]],
+        allow_web_sources: bool,
+        claims: bool,
+        verifier: Optional[FaithfulnessVerifier] = None,
+    ) -> Optional[ClaimGroundingResult]:
+        if not claims:
+            return None
+        return await check_claim_grounding_async(
+            response=response,
+            context_docs=list(context or []),
+            embedding_callable=embedding_callable,
+            context_embeddings=context_embeddings,
+            allow_web=allow_web_sources,
+            verifier=verifier,
+        )
+
     def check_json(self, response: Any, schema: Mapping[str, Any]) -> SchemaValidationResult:
         """Validate JSON response payload against schema."""
         _, parsed_response = _coerce_response(response)
         return validate_schema_detailed(parsed_response, schema)
+
+    def check_tool_call(
+        self,
+        tool_calls: Any,
+        tools: Mapping[str, Any],
+    ) -> ToolCallResult:
+        """Validate agent tool-call names and arguments against declared schemas.
+
+        ``tool_calls`` accepts raw payloads (dicts with ``name``/``arguments``,
+        OpenAI-style ``{function: {name, arguments}}``, or ``(name, arguments)``
+        pairs) and ``tools`` maps each tool name to its JSON schema or an
+        OpenAI-style wrapper with ``parameters``.
+        """
+        return score_tool_calls(tool_calls, tools)
 
     def assert_safe(self, result: HallxResult, threshold: float = 0.4) -> None:
         """Raise ``HallxHighRiskError`` if confidence is below threshold."""

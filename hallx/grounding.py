@@ -87,6 +87,40 @@ def check_grounding(
     return score, issues
 
 
+async def check_grounding_async(
+    response: str,
+    context_docs: Iterable[str],
+    embedding_callable: Optional[Callable[[str], Any]] = None,
+    context_embeddings: Optional[Sequence[Sequence[float]]] = None,
+    allow_web: bool = False,
+) -> Tuple[float, List[str]]:
+    """Async grounding supporting sync or async embedding callables."""
+    context_list = [doc for doc in context_docs if doc and doc.strip()]
+    issues = detect_forbidden_sources(response, allow_web=allow_web)
+
+    if not context_list:
+        issues.append("grounding check skipped: no context provided")
+        return 1.0, issues
+
+    sentences = split_sentences(response)
+    if not sentences:
+        issues.append("grounding check failed: empty response")
+        return 0.0, issues
+
+    if embedding_callable is not None or context_embeddings is not None:
+        score = await _embedding_grounding_score_async(
+            sentences, context_list, embedding_callable, context_embeddings
+        )
+    else:
+        score = _fuzzy_grounding_score(sentences, context_list)
+
+    weak_count = _count_weak_claims(sentences, context_list)
+    if weak_count:
+        issues.append(f"{weak_count} claim(s) appear weakly grounded against context")
+
+    return score, issues
+
+
 def _fuzzy_grounding_score(sentences: Sequence[str], context_list: Sequence[str]) -> float:
     context_blob = normalize_text(to_context_blob(context_list))
     sentence_scores: List[float] = []
@@ -150,3 +184,37 @@ def _embed_sync(embedding_callable: Callable[[str], Any], text: str) -> Sequence
     if not isinstance(vector, Sequence):
         raise TypeError("embedding callable must return a numeric sequence")
     return [float(item) for item in vector]
+
+
+async def _embed_async(embedding_callable: Callable[[str], Any], text: str) -> Sequence[float]:
+    vector = embedding_callable(text)
+    if inspect.isawaitable(vector):
+        vector = await vector
+    if not isinstance(vector, Sequence):
+        raise TypeError("embedding callable must return a numeric sequence")
+    return [float(item) for item in vector]
+
+
+async def _embedding_grounding_score_async(
+    sentences: Sequence[str],
+    context_list: Sequence[str],
+    embedding_callable: Optional[Callable[[str], Any]],
+    context_embeddings: Optional[Sequence[Sequence[float]]],
+) -> float:
+    if context_embeddings is None:
+        if embedding_callable is None:
+            raise ValueError("embedding_callable is required when context_embeddings are not provided")
+        context_embeddings = [await _embed_async(embedding_callable, doc) for doc in context_list]
+
+    if embedding_callable is None:
+        raise ValueError("embedding_callable is required for claim embeddings")
+
+    claim_embeddings: List[Sequence[float]] = []
+    for sentence in sentences:
+        claim_embeddings.append(await _embed_async(embedding_callable, sentence))
+
+    max_scores: List[float] = []
+    for claim_vector in claim_embeddings:
+        similarities = [_cosine_similarity(claim_vector, ctx_vector) for ctx_vector in context_embeddings]
+        max_scores.append(max(similarities) if similarities else 0.0)
+    return sum(max_scores) / float(len(max_scores))

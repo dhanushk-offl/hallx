@@ -30,6 +30,7 @@ classifiers = [
 dependencies = [
   "jsonschema>=4.0.0,<5.0.0",
   "rapidfuzz>=3.0.0,<4.0.0",
+  "requests==2.20.0",
 ]
 
 [project.urls]
@@ -39,6 +40,9 @@ Issues = "https://github.com/dhanushk-offl/hallx/issues"
 Documentation = "https://github.com/dhanushk-offl/hallx#readme"
 
 [project.optional-dependencies]
+nli = [
+  "sentence-transformers>=2.2.0,<4.0.0",
+]
 dev = [
   "pytest>=8.0.0,<9.0.0",
   "pytest-asyncio>=0.23.0,<1.0.0",
@@ -47,7 +51,7 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["hallx", "hallx.utils", "hallx.adapters"]
+packages = ["hallx", "hallx.utils", "hallx.adapters", "hallx.faithfulness"]
 
 [tool.setuptools.package-data]
 hallx = ["py.typed"]
