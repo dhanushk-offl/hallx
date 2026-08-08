@@ -1,5 +1,6 @@
 """Grounding and source-integrity checks."""
 
+import asyncio
 import inspect
 import math
 import re
@@ -204,14 +205,16 @@ async def _embedding_grounding_score_async(
     if context_embeddings is None:
         if embedding_callable is None:
             raise ValueError("embedding_callable is required when context_embeddings are not provided")
-        context_embeddings = [await _embed_async(embedding_callable, doc) for doc in context_list]
+        context_embeddings = await asyncio.gather(
+            *(_embed_async(embedding_callable, doc) for doc in context_list)
+        )
 
     if embedding_callable is None:
         raise ValueError("embedding_callable is required for claim embeddings")
 
-    claim_embeddings: List[Sequence[float]] = []
-    for sentence in sentences:
-        claim_embeddings.append(await _embed_async(embedding_callable, sentence))
+    claim_embeddings = await asyncio.gather(
+        *(_embed_async(embedding_callable, sentence) for sentence in sentences)
+    )
 
     max_scores: List[float] = []
     for claim_vector in claim_embeddings:

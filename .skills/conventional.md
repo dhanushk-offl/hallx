@@ -14,7 +14,10 @@ description: >
 
 - Python 3.9+ compatible, with type hints on **every** parameter and return of
   every public function. No `Any` leaking from public signatures; private
-  helpers may loosen internally.
+  helpers may loosen internally. `Any` is permitted at documented raw-input
+  normalization boundaries (`Hallx.check(response=...)`,
+  `check_tool_call(tool_calls=...)`) but must not appear on typed outputs or
+  structured APIs.
 - Line length hard limit **88 characters** (project target 84-88). Break long
   definitions across lines.
 - f-strings preferred; no `%`-formatting.

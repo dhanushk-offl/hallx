@@ -5,6 +5,7 @@ entailment-based faithfulness confidence. Heavy dependencies are imported
 lazily so the core hallx install stays dependency-free.
 """
 
+import asyncio
 from typing import Any, Optional
 
 
@@ -24,7 +25,7 @@ class LocalNLIChecker:
 
     def __init__(
         self,
-        model_name: str = "cross-encoder/nli-deberta-v3-v2",
+        model_name: str = "cross-encoder/nli-deberta-v3-base",
         device: Optional[str] = None,
         max_length: int = 512,
     ) -> None:
@@ -37,11 +38,9 @@ class LocalNLIChecker:
 
     def verify(self, premise: str, hypothesis: str) -> float:
         """Return entailment confidence in ``[0, 1]``."""
+        if not premise.strip() or not hypothesis.strip():
+            return 0.0
         model = self._load()
-        if not premise.strip():
-            return 0.0
-        if not hypothesis.strip():
-            return 0.0
 
         scores = model.predict([(premise, hypothesis)])
         try:
@@ -51,10 +50,14 @@ class LocalNLIChecker:
         if len(row) < 3:
             # Non-triple NLI models expose a single similarity score.
             return float(max(0.0, min(1.0, row[0])))
-        # Interpretation of (contradiction, neutral, entailment).
-        entailment = max(0.0, min(1.0, float(row[2])))
+        # Interpretation of (contradiction, entailment, neutral).
+        entailment = max(0.0, min(1.0, float(row[1])))
         contradiction = max(0.0, min(1.0, float(row[0])))
         return max(0.0, min(1.0, entailment * (1.0 - contradiction)))
+
+    async def averify(self, premise: str, hypothesis: str) -> float:
+        """Async variant that offloads model inference off the event loop."""
+        return await asyncio.to_thread(self.verify, premise, hypothesis)
 
     def _load(self) -> Any:
         if self._model is not None:

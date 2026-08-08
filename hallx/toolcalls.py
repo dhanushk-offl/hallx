@@ -38,6 +38,8 @@ def _coerce_arguments(raw: Any) -> Tuple[Any, Optional[str]]:
             parsed = json.loads(raw)
         except json.JSONDecodeError:
             return None, "tool arguments are not valid JSON"
+        if not isinstance(parsed, Mapping):
+            return None, "tool arguments must decode to a JSON object"
         return parsed, None
     return raw, "tool arguments must be a JSON object or object mapping"
 
@@ -46,17 +48,10 @@ def _find_tool_schema(name: str, tools: Mapping[str, Mapping[str, Any]]) -> Opti
     schema = tools.get(name)
     if not isinstance(schema, Mapping):
         return None
-    if "parameters" in schema and isinstance(schema["parameters"], Mapping):
-        parameters = schema["parameters"]
-        resolved: Dict[str, Any] = {
-            "type": parameters.get("type", "object"),
-            "additionalProperties": parameters.get("additionalProperties", False),
-        }
-        if "properties" in parameters:
-            resolved["properties"] = parameters["properties"]
-        if "required" in parameters:
-            resolved["required"] = parameters["required"]
-        return _coerce_parameters_schema(resolved)
+    if "parameters" in schema:
+        if not isinstance(schema["parameters"], Mapping):
+            return None
+        return _coerce_parameters_schema(schema["parameters"])
     return _coerce_parameters_schema(schema)
 
 
@@ -90,7 +85,9 @@ def check_tool_call(
 
     for index, call in enumerate(tool_calls):
         name = call.name
-        args, arg_error = _coerce_arguments(call.arguments)
+        args, arg_error = _coerce_arguments(
+            call.arguments if call.arguments is not None else call.raw_arguments
+        )
 
         if name not in tools:
             verdict = _unknown_tool_verdict(index, name, arg_error)
@@ -141,6 +138,9 @@ def check_tool_call(
     if unknown:
         recommendation["action"] = "block"
         recommendation["suggestions"].append("Regenerate tool call: remove unknown/hallucinated tools")
+    elif any(verdict.status == "invalid_definition" for verdict in verdicts):
+        recommendation["action"] = "block"
+        recommendation["suggestions"].append("Repair the declared tool schemas before calling")
     elif any(verdict.status == "invalid_arguments" for verdict in verdicts):
         recommendation["action"] = "fix"
         recommendation["suggestions"].append("Correct arguments against the declared tool schemas")

@@ -1,5 +1,6 @@
 """Claim-level grounding attribution with span-aware evidence reporting."""
 
+import asyncio
 import inspect
 import math
 from typing import Any, Callable, List, Optional, Sequence, Tuple
@@ -7,7 +8,7 @@ from typing import Any, Callable, List, Optional, Sequence, Tuple
 from rapidfuzz import fuzz
 
 from hallx.faithfulness.base import FaithfulnessVerifier
-from hallx.grounding import detect_forbidden_sources
+from hallx.grounding import _embed_async, _embed_sync, detect_forbidden_sources
 from hallx.types import Claim, ClaimGroundingResult
 from hallx.utils.text import is_assertive_sentence, normalize_text, split_sentences_spans
 
@@ -58,6 +59,8 @@ def check_claim_grounding(
     context_embeddings = _resolve_context_embeddings(
         context_list, context_embeddings, embedding_callable
     )
+    if context_embeddings is not None and embedding_callable is None:
+        raise ValueError("embedding_callable is required when claim embeddings are provided")
     claims: List[Claim] = []
     similarities: List[float] = []
 
@@ -143,6 +146,8 @@ async def check_claim_grounding_async(
     context_embeddings = await _resolve_context_embeddings_async(
         context_list, context_embeddings, embedding_callable
     )
+    if context_embeddings is not None and embedding_callable is None:
+        raise ValueError("embedding_callable is required when claim embeddings are provided")
     claims: List[Claim] = []
     similarities: List[float] = []
 
@@ -188,7 +193,7 @@ async def check_claim_grounding_async(
         issues.append(f"{len(unsupported)} claim(s) have no supporting evidence in context")
     if any(claim.status == "filtered" for claim in claims):
         filtered = sum(1 for claim in claims if claim.status == "filtered")
-        issues.append(f"{filtered} non-claim filler sentence(s) filtered from scoring")
+        issues.append(f"{filtered} non-factual filler sentence(s) filtered from grounding")
 
     return ClaimGroundingResult(
         claims=claims,
@@ -206,9 +211,11 @@ def _empty_report(
     issues: List[str],
     claims: Optional[List[Claim]] = None,
 ) -> ClaimGroundingResult:
+    claim_list = claims or []
     return ClaimGroundingResult(
-        claims=claims or [],
+        claims=claim_list,
         score=1.0,
+        filtered_count=sum(1 for claim in claim_list if claim.status == "filtered"),
         issues=issues,
     )
 
@@ -279,12 +286,10 @@ async def _best_evidence_async(
     verifier: Optional[FaithfulnessVerifier] = None,
 ) -> Tuple[float, int]:
     if verifier is not None and hasattr(verifier, "averify"):
-        scores: List[float] = []
-        for doc in context_list:
-            value = verifier.averify(doc, text)
-            if inspect.isawaitable(value):
-                value = await value
-            scores.append(max(0.0, min(1.0, float(value))))
+        normalized = await asyncio.gather(
+            *(_normalize_verifier_score(v) for v in (verifier.averify(doc, text) for doc in context_list))
+        )
+        scores = list(normalized)
     elif verifier is not None and hasattr(verifier, "verify"):
         scores = [max(0.0, min(1.0, float(verifier.verify(doc, text)))) for doc in context_list]
     elif context_embeddings is not None and embedding_callable is not None:
@@ -300,6 +305,13 @@ async def _best_evidence_async(
         ]
     best_index = int(max(range(len(scores)), key=lambda idx: scores[idx]))
     return max(0.0, min(1.0, scores[best_index])), best_index
+
+
+async def _normalize_verifier_score(value: Any) -> float:
+    result = value
+    if inspect.isawaitable(result):
+        result = await result
+    return max(0.0, min(1.0, float(result)))
 
 
 def _filter_from_similarity(
@@ -330,21 +342,3 @@ def _cosine_similarity(left: Sequence[float], right: Sequence[float]) -> float:
     if norm_left == 0.0 or norm_right == 0.0:
         return 0.0
     return max(0.0, min(1.0, dot / (norm_left * norm_right)))
-
-
-def _embed_sync(embedding_callable: TextField, text: str) -> Sequence[float]:
-    vector = embedding_callable(text)
-    if inspect.isawaitable(vector):
-        raise TypeError("sync embedding callable returned awaitable; use async API")
-    if not isinstance(vector, Sequence):
-        raise TypeError("embedding callable must return a numeric sequence")
-    return [float(item) for item in vector]
-
-
-async def _embed_async(embedding_callable: TextField, text: str) -> Sequence[float]:
-    vector = embedding_callable(text)
-    if inspect.isawaitable(vector):
-        vector = await vector
-    if not isinstance(vector, Sequence):
-        raise TypeError("embedding callable must return a numeric sequence")
-    return [float(item) for item in vector]

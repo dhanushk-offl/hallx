@@ -93,6 +93,34 @@ def test_malformed_json_arguments() -> None:
     assert result.verdicts[0].status == "malformed"
 
 
+def test_json_array_or_scalar_arguments_rejected() -> None:
+    array = check_tool_call([ToolCall("get_weather", "[]")], TOOLS)
+    scalar = check_tool_call([ToolCall("get_weather", "false")], TOOLS)
+    number = check_tool_call([ToolCall("get_weather", "7")], TOOLS)
+
+    assert array.verdicts[0].status == "malformed"
+    assert scalar.verdicts[0].status == "malformed"
+    assert number.verdicts[0].status == "malformed"
+    assert all("object" in verdict.issues[0] for verdict in (array, scalar, number))
+
+
+def test_raw_arguments_used_when_arguments_missing() -> None:
+    result = check_tool_call(
+        [ToolCall("get_weather", arguments=None, raw_arguments='{"city": "London"}')], TOOLS
+    )
+
+    assert result.verdicts[0].status == "ok"
+    assert result.score == pytest.approx(1.0)
+
+
+def test_raw_arguments_missing_falls_back_to_empty_object() -> None:
+    result = check_tool_call(
+        [ToolCall("get_weather", arguments=None, raw_arguments=None)], TOOLS
+    )
+
+    assert result.verdicts[0].status == "invalid_arguments"
+
+
 def test_openai_parameters_wrapper_resolved() -> None:
     result = score_tool_calls(
         [{"function": {"name": "send_email", "arguments": '{"to": "x@y.z"}'}}], TOOLS
@@ -111,3 +139,31 @@ def test_no_tool_calls_allowed_bare() -> None:
 def test_tools_must_be_non_empty() -> None:
     with pytest.raises(ValueError, match="non-empty"):
         score_tool_calls([("get_weather", {})], {})
+
+
+def test_bad_schema_definition_blocks() -> None:
+    result = score_tool_calls(
+        [{"name": "get_weather", "arguments": "{}"}],
+        {"get_weather": {"parameters": "not a mapping"}},
+    )
+
+    assert result.verdicts[0].status == "invalid_definition"
+    assert result.recommendation["action"] == "block"
+    assert result.score == pytest.approx(0.0)
+
+
+def test_parameters_wrapper_preserves_extra_schema_keys() -> None:
+    tools = {
+        "tool": {
+            "parameters": {
+                "type": "object",
+                "properties": {"q": {"type": "string"}},
+                "required": ["q"],
+                "additionalProperties": False,
+            }
+        }
+    }
+    result = check_tool_call([ToolCall("tool", {"q": "hi", "extra": 1})], tools)
+
+    assert result.verdicts[0].status == "invalid_arguments"
+    assert any("extra" in issue for issue in result.verdicts[0].issues)

@@ -18,7 +18,7 @@ class Verifier:
         return self.verify(premise, hypothesis)
 
 
-def test_extract_claims_returns_typed_clains() -> None:
+def test_extract_claims_returns_typed_claims() -> None:
     claims = extract_claims("The sky is blue. Please note: birds fly.")
 
     assert all(isinstance(claim, Claim) for claim in claims)
@@ -96,4 +96,5 @@ def test_non_assertive_sentences_are_filtered() -> None:
 
     filtered = [claim for claim in result.claims if claim.status == "filtered"]
     assert filtered == result.claims
+    assert result.filtered_count == len(filtered)
     assert any("skipped" in issue or "filtered" in issue for issue in result.issues)

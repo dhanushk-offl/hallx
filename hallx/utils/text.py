@@ -89,9 +89,6 @@ def is_assertive_sentence(text: str) -> bool:
     if len(lowered) < 8:
         return False
 
-    if not re.search(r"[.!?]$", lowered):
-        lowered = lowered.rstrip()
-
     for prefix in _NON_ASSERTIVE_PREFIXES:
         if lowered.startswith(prefix):
             return False

@@ -1,6 +1,7 @@
 """LLM-as-judge groundness: reuse a Hallx adapter as a faithfulness verifier."""
 
 import asyncio
+from typing import Optional
 
 from hallx import Hallx
 from hallx.judge import GroundingJudge
@@ -14,10 +15,10 @@ class ExampleAdapter:
     AnthropicAdapter, OpenRouterAdapter, etc.
     """
 
-    def generate(self, prompt: str, system_prompt: str | None = None) -> str:
+    def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         return "92"
 
-    async def agenerate(self, prompt: str, system_prompt: str | None = None) -> str:
+    async def agenerate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         return "92"
 
 

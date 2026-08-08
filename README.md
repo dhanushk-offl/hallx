@@ -103,7 +103,7 @@ result = check_claim_grounding(response, context, verifier=judge)
 Enable claim-level evidence on every `Hallx.check` call and the verdict lands on `result.evidence`:
 
 ```python
-from hallx import Hallx
+from hallx import Hallx, OpenAIAdapter
 from hallx.judge import GroundingJudge
 
 checker = Hallx()
@@ -154,7 +154,7 @@ if result.recommendation["action"] == "block":
     print("Regenerate before invoking any tool.")
 ```
 
-Accepts raw `(name, arguments)` pairs, dicts, OpenAI-style `{function: ...}` payloads, and typed `ToolCall` instances. The standalone `check_tool_call` / `score_tool_calls` helpers are exported too. Verdict statuses: `ok`, `invalid_arguments`, `malformed`, `unknown_tool`.
+Accepts raw `(name, arguments)` pairs, dicts, OpenAI-style `{function: ...}` payloads, and typed `ToolCall` instances. The standalone `check_tool_call` / `score_tool_calls` helpers are exported too. Verdict statuses: `ok`, `invalid_arguments`, `malformed`, `invalid_definition`, `unknown_tool`.
 
 ## Workflow
 

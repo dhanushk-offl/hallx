@@ -74,6 +74,7 @@ class Hallx:
         """Run all enabled checks and return a typed result."""
         response_text, parsed_response = _coerce_response(response)
         chosen_callable = llm_callable or (llm_adapter.generate if llm_adapter is not None else None)
+        context_docs = list(context or [])
 
         schema_score = 1.0
         schema_issues: list[str] = []
@@ -100,7 +101,7 @@ class Hallx:
 
         grounding_score, grounding_issues = check_grounding(
             response=response_text,
-            context_docs=context or [],
+            context_docs=context_docs,
             embedding_callable=embedding_callable,
             context_embeddings=context_embeddings,
             allow_web=allow_web_sources,
@@ -116,7 +117,7 @@ class Hallx:
 
         evidence = self._claims_sync(
             response=response_text,
-            context=context,
+            context=context_docs,
             embedding_callable=embedding_callable,
             context_embeddings=context_embeddings,
             allow_web_sources=allow_web_sources,
@@ -174,6 +175,7 @@ class Hallx:
         """Async version of ``check`` supporting sync or async LLM callables."""
         response_text, parsed_response = _coerce_response(response)
         chosen_callable = llm_callable or (llm_adapter.agenerate if llm_adapter is not None else None)
+        context_docs = list(context or [])
 
         schema_score = 1.0
         schema_issues: list[str] = []
@@ -200,7 +202,7 @@ class Hallx:
 
         grounding_score, grounding_issues = await check_grounding_async(
             response=response_text,
-            context_docs=context or [],
+            context_docs=context_docs,
             embedding_callable=embedding_callable,
             context_embeddings=context_embeddings,
             allow_web=allow_web_sources,
@@ -216,7 +218,7 @@ class Hallx:
 
         evidence = await self._claims_async(
             response=response_text,
-            context=context,
+            context=context_docs,
             embedding_callable=embedding_callable,
             context_embeddings=context_embeddings,
             allow_web_sources=allow_web_sources,

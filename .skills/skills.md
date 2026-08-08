@@ -80,9 +80,11 @@ mixes weighted components; `risk_level_from_confidence` maps to
    (e.g. `1.0 - 0.15 * len(issues)` for schema). More issues → more loss, capped at 0.
 2. **Skip penalties.** When a check can't run (no context, no model), the
    component still participates but is discounted by `_apply_skip_penalty`.
-3. **Strict mode.** `Hallx(strict=True)` turns a `high` confidence into a raised
-   `HallxHighRiskError`. **Guard every changed path**: does the new code behave
-   identically for `strict=False` (returns) and `strict=True` (raises)?
+3. **Strict mode.** `Hallx(strict=True)` turns a `high` **risk level** (low
+   confidence, `< 0.4`) into a raised `HallxHighRiskError`. High risk is the
+   low-confidence outcome — not high confidence. **Guard every changed path**:
+   does the new code behave identically for `strict=False` (returns) and
+   `strict=True` (raises)?
 
 ### Claim grounding (per-sentence)
 
@@ -151,8 +153,9 @@ These are the known trap classes. Cover them in new tests.
    return value; run the sequence. Keep async attributes aligned with the sync ones.
 7. **Unknown tool name vs typo.** A near-miss name must get a `did you mean`
    suggestion; a totally different name must not.
-8. **Threshold boundaries.** similarity at exactly `0.7` and `0.39` must land in
-   `supported` vs `weak` respectively. Test the boundary, not just the middle.
+8. **Threshold boundaries.** similarity at exactly `0.7` (`supported`) and `0.4`
+   (`weak`, the `weak_threshold`) must land in the right buckets; a `0.39` input
+   must be `unsupported`. Test the boundary, not just the middle.
 9. **Strict vs non-strict.** A new feature that worsens confidence may flip a
    `balanced` (low risk) into `high` (raises). Recheck `strict` after any scoring change.
 

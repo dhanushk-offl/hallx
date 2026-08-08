@@ -10,7 +10,7 @@ from hallx.adapters import (
     OpenRouterAdapter,
     PerplexityAdapter,
 )
-from hallx.attribution import check_claim_grounding, extract_claims
+from hallx.attribution import check_claim_grounding, check_claim_grounding_async, extract_claims
 from hallx.calibration import FeedbackStore, default_feedback_db_path
 from hallx.core import Hallx
 from hallx.faithfulness import FaithfulnessVerifier, LocalNLIChecker
@@ -43,6 +43,8 @@ __all__ = [
     "check_tool_call",
     "score_tool_calls",
     "extract_claims",
+    "check_claim_grounding",
+    "check_claim_grounding_async",
     "FaithfulnessVerifier",
     "LocalNLIChecker",
     "OpenAIAdapter",
