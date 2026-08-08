@@ -10,9 +10,22 @@ from hallx.adapters import (
     OpenRouterAdapter,
     PerplexityAdapter,
 )
+from hallx.attribution import check_claim_grounding, check_claim_grounding_async, extract_claims
 from hallx.calibration import FeedbackStore, default_feedback_db_path
 from hallx.core import Hallx
-from hallx.types import HallxAdapterError, HallxHighRiskError, HallxResult, SchemaValidationResult
+from hallx.faithfulness import FaithfulnessVerifier, LocalNLIChecker
+from hallx.toolcalls import check_tool_call, score_tool_calls
+from hallx.types import (
+    Claim,
+    ClaimGroundingResult,
+    HallxAdapterError,
+    HallxHighRiskError,
+    HallxResult,
+    SchemaValidationResult,
+    ToolCall,
+    ToolCallResult,
+    ToolCallVerdict,
+)
 
 __all__ = [
     "Hallx",
@@ -22,6 +35,18 @@ __all__ = [
     "HallxAdapterError",
     "FeedbackStore",
     "default_feedback_db_path",
+    "Claim",
+    "ClaimGroundingResult",
+    "ToolCall",
+    "ToolCallVerdict",
+    "ToolCallResult",
+    "check_tool_call",
+    "score_tool_calls",
+    "extract_claims",
+    "check_claim_grounding",
+    "check_claim_grounding_async",
+    "FaithfulnessVerifier",
+    "LocalNLIChecker",
     "OpenAIAdapter",
     "OpenRouterAdapter",
     "AnthropicAdapter",
