@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.1.0] - 2026-08-09
+
+### Added
+- Claim-level grounding (`hallx.attribution`): sentence-span claim extraction with per-claim `supported` / `weak` / `unsupported` verdicts plus evidence snippets
+- Pluggable faithfulness verifiers: `LocalNLIChecker` (local NLI via optional `hallx[nli]` extra) and `GroundingJudge` LLM-as-judge (`hallx.judge`)
+- Tool-call validation (`hallx.toolcalls`, `Hallx.check_tool_call`): hallucinated tool-name detection and argument-schema validation with `ok` / `invalid_arguments` / `malformed` / `invalid_definition` / `unknown_tool` verdicts
+- Async claim-grounding and grounding paths with `asyncio.gather` backends
+- New typed models: `Claim`, `ClaimGroundingResult`, `ToolCall`, `ToolCallVerdict`, `ToolCallResult`
+- Python 3.9-compatible annotations across tests and samples
+
+### Fixed
+- Removed unused `requests==2.20.0` pin that broke dependency resolution; moved to security-fixed pinned `requests` per Python version
+- `filtered_count` now reported correctly when all claims are filtered
+- Claims with embeddings but no `embedding_callable` raise instead of silently fuzzy-falling back
+- `GroundingJudge` score parsing now prefers labeled scores and JSON-quotes evidence/hypothesis to block prompt injection
+- Tool-call validation rejects non-object JSON arguments and uses `raw_arguments` when `arguments` is absent
+
+### Changed
+- `check` / `check_async` accept `claims=True` and `verifier=...`; evidence lands on `result.evidence`
+- Deduplicated sync/async embedding helpers and aligned filtered-sentence issue wording
+
 ## [1.0.4] - 2026-06-01
 
 ### Added
