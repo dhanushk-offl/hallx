@@ -32,6 +32,14 @@ It returns:
 - `risk_level`
 - `issues`
 - `recommendation`
+- `coverage` (which checks ran or were skipped)
+
+At least grounding or consistency must run to produce a normal risk verdict.
+Otherwise, Hallx returns `insufficient_evidence` and recommends review, unless
+the score already indicates high risk. Use `required_checks={"grounding"}` to
+require specific checks. Confidence is a heuristic, not a probability of truth.
+See the [usage guide](docs/USAGE.md#evaluation-coverage) for the behavior change
+and safety-gate details.
 
 For agentic and retrieval flows, hallx adds three deeper guards:
 

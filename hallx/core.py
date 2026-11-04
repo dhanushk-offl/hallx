@@ -17,6 +17,7 @@ from hallx.scoring import combine_scores, resolve_weights, risk_level_from_confi
 from hallx.toolcalls import score_tool_calls
 from hallx.types import (
     ClaimGroundingResult,
+    CheckCoverage,
     HallxHighRiskError,
     HallxResult,
     LLMAdapter,
@@ -44,6 +45,7 @@ class Hallx:
         strict: bool = False,
         skip_penalty: Optional[float] = None,
         feedback_db_path: Optional[str] = None,
+        required_checks: Optional[Iterable[str]] = None,
     ) -> None:
         normalized_profile = _normalize_profile(profile)
         chosen_weights = weights if weights is not None else _PROFILE_WEIGHTS[normalized_profile]
@@ -54,6 +56,7 @@ class Hallx:
         self._strict = strict
         self._feedback_db_path = feedback_db_path
         self._feedback_store: Optional[FeedbackStore] = None
+        self._required_checks = _validate_required_checks(required_checks)
 
     def check(
         self,
@@ -130,31 +133,8 @@ class Hallx:
             "consistency": consistency_score,
             "grounding": grounding_score,
         }
-        confidence = combine_scores(scores, self._weights)
-        risk_level = risk_level_from_confidence(confidence)
-
-        issues = schema_issues + consistency_issues + grounding_issues
-        recommendation = build_recommendation(
-            confidence=confidence,
-            risk_level=risk_level,
-            scores=scores,
-            issues=issues,
-        )
-        result = HallxResult(
-            confidence=confidence,
-            risk_level=risk_level,
-            scores=scores,
-            issues=issues,
-            recommendation=recommendation,
-            evidence=evidence,
-        )
-
-        if self._strict and risk_level == "high":
-            raise HallxHighRiskError(
-                f"high hallucination risk detected with confidence={confidence:.3f}: {issues}"
-            )
-
-        return result
+        return self._build_result(scores, schema_issues + consistency_issues + grounding_issues,
+                                  evidence, schema, chosen_callable, context_docs)
 
     async def check_async(
         self,
@@ -231,30 +211,51 @@ class Hallx:
             "consistency": consistency_score,
             "grounding": grounding_score,
         }
+        return self._build_result(scores, schema_issues + consistency_issues + grounding_issues,
+                                  evidence, schema, chosen_callable, context_docs)
+
+    def _build_result(
+        self,
+        scores: Mapping[str, float],
+        issues: list[str],
+        evidence: Optional[ClaimGroundingResult],
+        schema: Optional[Mapping[str, Any]],
+        llm_callable: Optional[Callable[..., Any]],
+        context: list[str],
+    ) -> HallxResult:
+        coverage = {
+            "schema": _coverage(schema is not None, "no schema provided"),
+            "consistency": _coverage(llm_callable is not None, "no llm callable provided"),
+            "grounding": _coverage(any(doc and doc.strip() for doc in context), "no context provided"),
+        }
+        missing = [name for name in ("schema", "consistency", "grounding")
+                   if name in self._required_checks and coverage[name].status == "skipped"]
+        missing_signal = all(coverage[name].status == "skipped" for name in ("grounding", "consistency"))
         confidence = combine_scores(scores, self._weights)
         risk_level = risk_level_from_confidence(confidence)
+        if missing_signal:
+            issues.append("insufficient evidence: grounding or consistency must be evaluated")
+        if missing:
+            issues.append("insufficient evidence: required checks skipped: " + ", ".join(missing))
+        if (missing_signal or missing) and risk_level != "high":
+            risk_level = "insufficient_evidence"
 
-        issues = schema_issues + consistency_issues + grounding_issues
-        recommendation = build_recommendation(
-            confidence=confidence,
-            risk_level=risk_level,
-            scores=scores,
-            issues=issues,
-        )
-        result = HallxResult(
-            confidence=confidence,
-            risk_level=risk_level,
-            scores=scores,
-            issues=issues,
-            recommendation=recommendation,
-            evidence=evidence,
-        )
-
-        if self._strict and risk_level == "high":
-            raise HallxHighRiskError(
-                f"high hallucination risk detected with confidence={confidence:.3f}: {issues}"
+        recommendation = build_recommendation(confidence, risk_level, scores, issues)
+        if risk_level == "insufficient_evidence":
+            recommendation["action"] = "review"
+            if missing_signal:
+                recommendation["suggestions"].append("Provide context or an LLM callable")
+            recommendation["suggestions"].extend(
+                f"Run required {name} check" for name in missing
             )
-
+        result = HallxResult(
+            confidence=confidence, risk_level=risk_level, scores=dict(scores), issues=issues,
+            recommendation=recommendation, evidence=evidence, coverage=coverage,
+        )
+        if self._strict and risk_level in ("high", "insufficient_evidence"):
+            raise HallxHighRiskError(
+                f"{risk_level} detected with confidence={confidence:.3f}: {issues}"
+            )
         return result
 
     def _claims_sync(
@@ -321,9 +322,11 @@ class Hallx:
         return score_tool_calls(tool_calls, tools)
 
     def assert_safe(self, result: HallxResult, threshold: float = 0.4) -> None:
-        """Raise ``HallxHighRiskError`` if confidence is below threshold."""
+        """Raise when evidence is insufficient or confidence is below threshold."""
         if not 0.0 <= threshold <= 1.0:
             raise ValueError("threshold must be between 0 and 1")
+        if result.risk_level == "insufficient_evidence":
+            raise HallxHighRiskError("insufficient evidence to assert safety")
         if result.confidence < threshold:
             raise HallxHighRiskError(
                 f"confidence {result.confidence:.3f} is below threshold {threshold:.3f}"
@@ -369,6 +372,23 @@ def _coerce_response(response: Any) -> tuple[str, Any]:
         return json.dumps(response, ensure_ascii=True), response
 
     raise TypeError("response must be JSON-serializable or str")
+
+
+def _coverage(evaluated: bool, reason: str) -> CheckCoverage:
+    return CheckCoverage(status="evaluated" if evaluated else "skipped",
+                         reason=None if evaluated else reason)
+
+
+def _validate_required_checks(required_checks: Optional[Iterable[str]]) -> frozenset[str]:
+    if required_checks is None:
+        return frozenset()
+    if isinstance(required_checks, str):
+        raise ValueError("required_checks must be an iterable of check names, not a string")
+    checks = list(required_checks)
+    allowed = {"schema", "consistency", "grounding"}
+    if any(not isinstance(name, str) or name not in allowed for name in checks):
+        raise ValueError("required_checks must contain only schema, consistency, or grounding")
+    return frozenset(checks)
 
 
 def _try_parse_json(value: str) -> Any:

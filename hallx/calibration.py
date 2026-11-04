@@ -144,7 +144,7 @@ class FeedbackStore:
                 "correct": 0,
                 "hallucinated": 0,
                 "hallucination_rate": 0.0,
-                "by_risk_level": {"high": {}, "medium": {}, "low": {}},
+                "by_risk_level": {"high": {}, "medium": {}, "low": {}, "insufficient_evidence": {}},
                 "suggested_threshold": None,
             }
 
@@ -165,7 +165,7 @@ class FeedbackStore:
 
     def _risk_level_metrics(self, rows: Iterable[Tuple[str, float, str]]) -> Dict[str, Dict[str, Any]]:
         metrics: Dict[str, Dict[str, Any]] = {}
-        for risk_level in ("high", "medium", "low"):
+        for risk_level in ("high", "medium", "low", "insufficient_evidence"):
             selected = [row for row in rows if row[2] == risk_level]
             count = len(selected)
             if count == 0:
