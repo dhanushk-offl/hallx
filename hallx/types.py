@@ -16,6 +16,14 @@ class LLMAdapter(Protocol):
 
 
 @dataclass(frozen=True)
+class CheckCoverage:
+    """Whether a check ran, with a reason when it was skipped."""
+
+    status: str
+    reason: Optional[str] = None
+
+
+@dataclass(frozen=True)
 class HallxResult:
     """Represents hallucination-risk analysis output."""
 
@@ -25,6 +33,7 @@ class HallxResult:
     issues: List[str] = field(default_factory=list)
     recommendation: Dict[str, Any] = field(default_factory=dict)
     evidence: Optional["ClaimGroundingResult"] = None
+    coverage: Dict[str, CheckCoverage] = field(default_factory=dict)
 
     @property
     def breakdown(self) -> Dict[str, float]:
@@ -123,7 +132,7 @@ class ToolCallResult:
 
 
 class HallxHighRiskError(RuntimeError):
-    """Raised when strict mode detects high hallucination risk."""
+    """Raised when a safety gate detects high risk or insufficient evidence."""
 
 
 class HallxAdapterError(RuntimeError):

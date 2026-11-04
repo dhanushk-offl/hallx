@@ -34,6 +34,7 @@ result = checker.check(
 
 print(result.confidence, result.risk_level)
 print(result.scores)
+print(result.coverage)
 print(result.issues)
 print(result.recommendation)
 ```
@@ -81,6 +82,26 @@ Override options:
 - `weights={...}` for custom score weighting
 - `consistency_runs=...` per call
 - `skip_penalty=...` at checker construction
+- `required_checks={"grounding", "schema"}` to require individual checks
+
+## Evaluation Coverage
+
+`result.coverage` maps `schema`, `consistency`, and `grounding` to a
+`CheckCoverage` object with `status` (`evaluated` or `skipped`) and a `reason`
+when skipped. Invalid output still counts as evaluated if the check ran.
+
+Hallx requires at least one of grounding or consistency to run. If neither runs,
+or a check listed in `required_checks` is skipped, the risk level is
+`insufficient_evidence` and the recommended action is `review`. A score that
+already indicates high risk retains the `high` verdict. `strict=True` rejects
+both high risk and insufficient evidence; `assert_safe` also rejects
+insufficient evidence, regardless of its confidence threshold.
+
+This is a behavior change: code that previously accepted a low-risk result when
+checks were skipped should handle the new risk level and `review` action. The
+confidence score and skip penalties are unchanged; confidence is a heuristic,
+not a calibrated probability of correctness. A completed check does not prove
+that an answer is correct.
 
 ## Strict Gating Pattern
 
@@ -105,7 +126,7 @@ Use this on:
 
 Use `result.recommendation` as runtime metadata:
 
-- `action`: `proceed` or `retry`
+- `action`: `proceed`, `retry`, or `review` (insufficient evidence)
 - `suggested_temperature`
 - `suggestions`
 

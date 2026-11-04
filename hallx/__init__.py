@@ -18,6 +18,7 @@ from hallx.toolcalls import check_tool_call, score_tool_calls
 from hallx.types import (
     Claim,
     ClaimGroundingResult,
+    CheckCoverage,
     HallxAdapterError,
     HallxHighRiskError,
     HallxResult,
@@ -30,6 +31,7 @@ from hallx.types import (
 __all__ = [
     "Hallx",
     "HallxResult",
+    "CheckCoverage",
     "SchemaValidationResult",
     "HallxHighRiskError",
     "HallxAdapterError",

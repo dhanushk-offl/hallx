@@ -75,7 +75,7 @@ def test_skip_penalty_reduces_confidence_when_checks_are_skipped() -> None:
     result = checker.check(prompt="p", response="r", context=None, llm_callable=None)
 
     assert result.confidence == pytest.approx(0.75)
-    assert result.risk_level == "low"
+    assert result.risk_level == "insufficient_evidence"
     assert any("penalized" in issue for issue in result.issues)
 
 
